@@ -1,11 +1,15 @@
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { logout } from "@/app/login/logout-action";
 import { UploadForm } from "./upload-form";
+import { PostItem } from "./post-item";
 
 type PostRow = {
   id: string;
   comment: string;
   created_at: string;
+  blog_title: string | null;
+  blog_content: string | null;
+  wordpress_post_id: string | null;
   post_images: { id: string; storage_path: string }[];
 };
 
@@ -13,7 +17,9 @@ async function getRecentPosts() {
   const supabase = createServiceRoleClient();
   const { data, error } = await supabase
     .from("posts")
-    .select("id, comment, created_at, post_images(id, storage_path)")
+    .select(
+      "id, comment, created_at, blog_title, blog_content, wordpress_post_id, post_images(id, storage_path)"
+    )
     .order("created_at", { ascending: false })
     .limit(20);
 
@@ -62,28 +68,16 @@ export default async function AdminPage() {
         )}
         <ul className="space-y-4">
           {posts.map((post) => (
-            <li
+            <PostItem
               key={post.id}
-              className="rounded border border-gray-200 p-4"
-            >
-              <div className="mb-2 flex gap-2 overflow-x-auto">
-                {post.images.map((img) =>
-                  img.url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      key={img.id}
-                      src={img.url}
-                      alt=""
-                      className="h-24 w-24 flex-shrink-0 rounded object-cover"
-                    />
-                  ) : null
-                )}
-              </div>
-              <p className="text-sm text-gray-800">{post.comment}</p>
-              <p className="mt-1 text-xs text-gray-400">
-                {new Date(post.created_at).toLocaleString("ja-JP")}
-              </p>
-            </li>
+              id={post.id}
+              comment={post.comment}
+              createdAt={post.created_at}
+              images={post.images}
+              blogTitle={post.blog_title}
+              blogContent={post.blog_content}
+              wordpressPostId={post.wordpress_post_id}
+            />
           ))}
         </ul>
       </section>

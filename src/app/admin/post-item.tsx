@@ -1,0 +1,136 @@
+"use client";
+
+import { useState, useTransition } from "react";
+import { generateBlogContent, publishToWordPress } from "./actions";
+
+type Props = {
+  id: string;
+  comment: string;
+  createdAt: string;
+  images: { id: string; url: string | null }[];
+  blogTitle: string | null;
+  blogContent: string | null;
+  wordpressPostId: string | null;
+};
+
+export function PostItem({
+  id,
+  comment,
+  createdAt,
+  images,
+  blogTitle,
+  blogContent,
+  wordpressPostId,
+}: Props) {
+  const [title, setTitle] = useState(blogTitle ?? "");
+  const [content, setContent] = useState(blogContent ?? "");
+  const [wpId, setWpId] = useState(wordpressPostId);
+  const [error, setError] = useState<string | null>(null);
+  const [isGenerating, startGenerate] = useTransition();
+  const [isPublishing, startPublish] = useTransition();
+
+  const handleGenerate = () => {
+    setError(null);
+    startGenerate(async () => {
+      const result = await generateBlogContent(id);
+      if (result.error) {
+        setError(result.error);
+      } else {
+        setTitle(result.title ?? "");
+        setContent(result.content ?? "");
+      }
+    });
+  };
+
+  const handlePublish = () => {
+    setError(null);
+    startPublish(async () => {
+      const result = await publishToWordPress(id, title, content);
+      if (result.error) {
+        setError(result.error);
+      } else {
+        setWpId(result.wordpressPostId ?? null);
+      }
+    });
+  };
+
+  return (
+    <li className="rounded border border-gray-200 p-4">
+      <div className="mb-2 flex gap-2 overflow-x-auto">
+        {images.map((img) =>
+          img.url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              key={img.id}
+              src={img.url}
+              alt=""
+              className="h-24 w-24 flex-shrink-0 rounded object-cover"
+            />
+          ) : null
+        )}
+      </div>
+      <p className="text-sm text-gray-800">{comment}</p>
+      <p className="mt-1 text-xs text-gray-400">
+        {new Date(createdAt).toLocaleString("ja-JP")}
+      </p>
+
+      <div className="mt-3 border-t border-gray-100 pt-3">
+        {!content && (
+          <button
+            type="button"
+            onClick={handleGenerate}
+            disabled={isGenerating}
+            className="rounded border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+          >
+            {isGenerating ? "生成中..." : "AIでブログ記事を生成"}
+          </button>
+        )}
+
+        {content && (
+          <div className="space-y-2">
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              disabled={!!wpId}
+              placeholder="タイトル"
+              className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm disabled:bg-gray-50"
+            />
+            <textarea
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              disabled={!!wpId}
+              rows={6}
+              className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm disabled:bg-gray-50"
+            />
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleGenerate}
+                disabled={isGenerating || !!wpId}
+                className="rounded border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              >
+                {isGenerating ? "再生成中..." : "再生成"}
+              </button>
+              {wpId ? (
+                <span className="text-sm text-green-600">
+                  WordPress投稿済み(ID: {wpId})
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handlePublish}
+                  disabled={isPublishing}
+                  className="rounded bg-gray-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-700 disabled:opacity-50"
+                >
+                  {isPublishing ? "投稿中..." : "WordPressに投稿(下書き)"}
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+      </div>
+    </li>
+  );
+}
