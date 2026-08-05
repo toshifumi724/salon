@@ -1,6 +1,6 @@
 import "server-only";
 import { createServiceRoleClient } from "@/lib/supabase/server";
-import { getDefaultSalonId } from "@/lib/salon";
+import { getCurrentSalonId } from "@/lib/salon";
 
 const SCOPE = "https://www.googleapis.com/auth/business.manage";
 const TOKEN_URL = "https://oauth2.googleapis.com/token";
@@ -140,7 +140,7 @@ export async function completeGoogleOAuth(
   const locationName = await listFirstLocation(tokens.access_token, accountName);
 
   const supabase = createServiceRoleClient();
-  const salonId = await getDefaultSalonId();
+  const salonId = await getCurrentSalonId();
   const expiresAt = new Date(Date.now() + tokens.expires_in * 1000).toISOString();
 
   const { error } = await supabase.from("google_connections").upsert(
@@ -171,7 +171,7 @@ type GoogleConnection = {
 
 export async function getGoogleConnection(): Promise<GoogleConnection | null> {
   const supabase = createServiceRoleClient();
-  const salonId = await getDefaultSalonId();
+  const salonId = await getCurrentSalonId();
   const { data } = await supabase
     .from("google_connections")
     .select(
@@ -192,7 +192,7 @@ async function getValidAccessToken(connection: GoogleConnection): Promise<string
 
   const tokens = await refreshAccessToken(connection.refresh_token);
   const supabase = createServiceRoleClient();
-  const salonId = await getDefaultSalonId();
+  const salonId = await getCurrentSalonId();
   const expiresAt2 = new Date(Date.now() + tokens.expires_in * 1000).toISOString();
 
   await supabase

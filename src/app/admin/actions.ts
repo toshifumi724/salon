@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createServiceRoleClient } from "@/lib/supabase/server";
-import { getDefaultSalonId } from "@/lib/salon";
+import { getCurrentSalonId } from "@/lib/salon";
 import {
   generateBlogPost,
   generateGoogleCaption,
@@ -46,7 +46,7 @@ export async function createPost(
 
   try {
     const supabase = createServiceRoleClient();
-    const salonId = await getDefaultSalonId();
+    const salonId = await getCurrentSalonId();
 
     const { data: post, error: postError } = await supabase
       .from("posts")
@@ -155,12 +155,37 @@ export async function publishToWordPress(
   }
 
   try {
-    const wordpressPostId = await createWordPressPost({
-      title: trimmedTitle,
-      content: trimmedContent,
-    });
-
     const supabase = createServiceRoleClient();
+    const salonId = await getCurrentSalonId();
+
+    const { data: salon, error: salonError } = await supabase
+      .from("salons")
+      .select("wordpress_url, wordpress_username, wordpress_app_password, wordpress_post_status")
+      .eq("id", salonId)
+      .single();
+
+    if (
+      salonError ||
+      !salon?.wordpress_url ||
+      !salon?.wordpress_username ||
+      !salon?.wordpress_app_password
+    ) {
+      return {
+        error:
+          "WordPressの連携設定が未入力です。設定画面からWordPressのURL・ユーザー名・アプリケーションパスワードを登録してください。",
+      };
+    }
+
+    const wordpressPostId = await createWordPressPost(
+      {
+        siteUrl: salon.wordpress_url,
+        username: salon.wordpress_username,
+        appPassword: salon.wordpress_app_password,
+        postStatus: salon.wordpress_post_status,
+      },
+      { title: trimmedTitle, content: trimmedContent }
+    );
+
     const { error } = await supabase
       .from("posts")
       .update({

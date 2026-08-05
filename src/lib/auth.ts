@@ -1,4 +1,9 @@
-const SESSION_COOKIE_NAME = "admin_session";
+// このファイルはEdge runtime(src/proxy.ts)からも読み込まれるため、
+// Node.js専用のAPI(crypto モジュールなど)は使わずWeb Crypto APIのみを使う。
+// パスワードのハッシュ化は src/lib/password.ts (Node.js専用)を参照。
+
+const SESSION_COOKIE_NAME = "session";
+const SESSION_MAX_AGE_MS = 1000 * 60 * 60 * 24 * 7; // 7日間
 
 function timingSafeEqualString(a: string, b: string): boolean {
   if (a.length !== b.length) return false;
@@ -9,38 +14,69 @@ function timingSafeEqualString(a: string, b: string): boolean {
   return result === 0;
 }
 
-async function sha256Hex(input: string): Promise<string> {
-  const data = new TextEncoder().encode(input);
-  const digest = await crypto.subtle.digest("SHA-256", data);
-  return Array.from(new Uint8Array(digest))
+function getSessionSecret(): string {
+  const secret = process.env.SESSION_SECRET;
+  if (!secret) {
+    throw new Error("SESSION_SECRETが設定されていません");
+  }
+  return secret;
+}
+
+async function hmacHex(message: string, secret: string): Promise<string> {
+  const keyData = new TextEncoder().encode(secret);
+  const key = await crypto.subtle.importKey(
+    "raw",
+    keyData,
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  const signature = await crypto.subtle.sign(
+    "HMAC",
+    key,
+    new TextEncoder().encode(message)
+  );
+  return Array.from(new Uint8Array(signature))
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
 }
 
-async function computeSessionToken(): Promise<string> {
-  const password = process.env.ADMIN_PASSWORD;
-  if (!password) {
-    throw new Error("ADMIN_PASSWORDが設定されていません");
+/**
+ * ログイン中のサロンIDを埋め込んだ、改ざん検知可能なセッションCookie値を作成する。
+ */
+export async function createSessionCookieValue(salonId: string): Promise<string> {
+  const secret = getSessionSecret();
+  const expiresAt = Date.now() + SESSION_MAX_AGE_MS;
+  const payload = `${salonId}.${expiresAt}`;
+  const signature = await hmacHex(payload, secret);
+  return `${payload}.${signature}`;
+}
+
+/**
+ * セッションCookieを検証し、有効であればサロンIDを返す。
+ * 署名不一致・期限切れの場合はnullを返す。
+ */
+export async function verifySessionCookie(
+  value: string | undefined
+): Promise<string | null> {
+  if (!value) return null;
+
+  const parts = value.split(".");
+  if (parts.length !== 3) return null;
+  const [salonId, expiresAtStr, signature] = parts;
+
+  const expiresAt = Number(expiresAtStr);
+  if (!salonId || !Number.isFinite(expiresAt) || Date.now() > expiresAt) {
+    return null;
   }
-  return sha256Hex(`admin-session:${password}`);
-}
 
-export function verifyPassword(input: string): boolean {
-  const password = process.env.ADMIN_PASSWORD;
-  if (!password) return false;
-  return timingSafeEqualString(input, password);
-}
-
-export async function verifySessionToken(
-  token: string | undefined
-): Promise<boolean> {
-  if (!token) return false;
   try {
-    const expected = await computeSessionToken();
-    return timingSafeEqualString(token, expected);
+    const secret = getSessionSecret();
+    const expected = await hmacHex(`${salonId}.${expiresAtStr}`, secret);
+    return timingSafeEqualString(signature, expected) ? salonId : null;
   } catch {
-    return false;
+    return null;
   }
 }
 
-export { SESSION_COOKIE_NAME, computeSessionToken };
+export { SESSION_COOKIE_NAME };

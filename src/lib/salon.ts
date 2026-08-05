@@ -1,24 +1,19 @@
 import "server-only";
-import { createServiceRoleClient } from "@/lib/supabase/server";
+import { cookies } from "next/headers";
+import { SESSION_COOKIE_NAME, verifySessionCookie } from "@/lib/auth";
 
 /**
- * MVPでは1サロンのみ運用のため、最初に登録されたサロンを既定のサロンとして扱う。
- * フェーズ3(マルチテナント化)でログイン中サロンを判定するロジックに置き換える。
+ * ログイン中のサロンIDを取得する。/admin配下はproxy.tsで認証必須のため、
+ * 通常はここでエラーになることはない。
  */
-export async function getDefaultSalonId(): Promise<string> {
-  const supabase = createServiceRoleClient();
-  const { data, error } = await supabase
-    .from("salons")
-    .select("id")
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .single();
+export async function getCurrentSalonId(): Promise<string> {
+  const cookieStore = await cookies();
+  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
+  const salonId = await verifySessionCookie(token);
 
-  if (error || !data) {
-    throw new Error(
-      "サロン情報が見つかりません。SupabaseでSQLマイグレーションが実行されているか確認してください。"
-    );
+  if (!salonId) {
+    throw new Error("ログインしていません");
   }
 
-  return data.id as string;
+  return salonId;
 }
