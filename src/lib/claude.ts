@@ -154,3 +154,43 @@ export async function generateReviewReply({
 
   return (response.parsed_output as { reply: string }).reply;
 }
+
+/**
+ * ホットペッパービューティーには公式APIが無いため自動投稿はしない。
+ * 管理画面にコピペ用として表示する文章のみ生成する。
+ */
+export async function generateHotpepperContent(comment: string): Promise<string> {
+  const client = getClient();
+
+  const response = await client.messages.parse({
+    model: MODEL,
+    max_tokens: 1500,
+    system:
+      "あなたは美容室のホットペッパービューティー掲載用の文章を書く担当者です。スタイリストが書いた短いコメントをもとに、スタイル紹介文を日本語で作成してください。お客様が来店したくなるような、施術内容やポイントが伝わる文章にしてください。300〜400文字程度でまとめ、見出しや記号(#や*など)は使わず、そのままコピー&ペーストして使える文章のみを出力してください。",
+    messages: [
+      {
+        role: "user",
+        content: `スタイリストのコメント:\n${comment}`,
+      },
+    ],
+    output_config: {
+      format: {
+        type: "json_schema",
+        schema: {
+          type: "object",
+          properties: {
+            content: { type: "string", description: "ホットペッパー掲載用の文章" },
+          },
+          required: ["content"],
+          additionalProperties: false,
+        },
+      },
+    },
+  });
+
+  if (!response.parsed_output) {
+    throw new Error("Claude APIからの応答を解析できませんでした");
+  }
+
+  return (response.parsed_output as { content: string }).content;
+}

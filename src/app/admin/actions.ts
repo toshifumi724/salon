@@ -3,7 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { getDefaultSalonId } from "@/lib/salon";
-import { generateBlogPost, generateGoogleCaption } from "@/lib/claude";
+import {
+  generateBlogPost,
+  generateGoogleCaption,
+  generateHotpepperContent,
+} from "@/lib/claude";
 import { createWordPressPost } from "@/lib/wordpress";
 import { createGoogleLocalPost } from "@/lib/google";
 
@@ -240,5 +244,41 @@ export async function publishToGoogle(
   } catch (err) {
     const message = err instanceof Error ? err.message : "不明なエラー";
     return { error: `Googleへの投稿に失敗しました: ${message}` };
+  }
+}
+
+export type GenerateHotpepperState = { content?: string; error?: string };
+
+export async function generateHotpepperContentAction(
+  postId: string
+): Promise<GenerateHotpepperState> {
+  try {
+    const supabase = createServiceRoleClient();
+    const { data: post, error } = await supabase
+      .from("posts")
+      .select("comment")
+      .eq("id", postId)
+      .single();
+
+    if (error || !post) {
+      return { error: "投稿が見つかりません" };
+    }
+
+    const content = await generateHotpepperContent(post.comment);
+
+    const { error: updateError } = await supabase
+      .from("posts")
+      .update({ hotpepper_content: content, updated_at: new Date().toISOString() })
+      .eq("id", postId);
+
+    if (updateError) {
+      return { error: `保存に失敗しました: ${updateError.message}` };
+    }
+
+    revalidatePath("/admin");
+    return { content };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "不明なエラー";
+    return { error: `ホットペッパー用文章の生成に失敗しました: ${message}` };
   }
 }

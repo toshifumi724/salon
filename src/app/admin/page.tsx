@@ -16,6 +16,7 @@ type PostRow = {
   blog_content: string | null;
   wordpress_post_id: string | null;
   google_post_id: string | null;
+  hotpepper_content: string | null;
   post_images: { id: string; storage_path: string }[];
 };
 
@@ -24,7 +25,7 @@ async function getRecentPosts() {
   const { data, error } = await supabase
     .from("posts")
     .select(
-      "id, comment, created_at, blog_title, blog_content, wordpress_post_id, google_post_id, post_images(id, storage_path)"
+      "id, comment, created_at, blog_title, blog_content, wordpress_post_id, google_post_id, hotpepper_content, post_images(id, storage_path)"
     )
     .order("created_at", { ascending: false })
     .limit(20);
@@ -133,6 +134,7 @@ export default async function AdminPage({
               wordpressPostId={post.wordpress_post_id}
               googlePostId={post.google_post_id}
               isGoogleConnected={!!googleConnection}
+              hotpepperContent={post.hotpepper_content}
             />
           ))}
         </ul>
