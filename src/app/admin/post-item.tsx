@@ -6,6 +6,7 @@ import {
   publishToWordPress,
   generateGoogleCaptionAction,
   publishToGoogle,
+  generateHotpepperContentAction,
 } from "./actions";
 
 type Props = {
@@ -18,6 +19,7 @@ type Props = {
   wordpressPostId: string | null;
   googlePostId: string | null;
   isGoogleConnected: boolean;
+  hotpepperContent: string | null;
 };
 
 export function PostItem({
@@ -30,6 +32,7 @@ export function PostItem({
   wordpressPostId,
   googlePostId,
   isGoogleConnected,
+  hotpepperContent,
 }: Props) {
   const [title, setTitle] = useState(blogTitle ?? "");
   const [content, setContent] = useState(blogContent ?? "");
@@ -43,6 +46,11 @@ export function PostItem({
   const [googleError, setGoogleError] = useState<string | null>(null);
   const [isGeneratingCaption, startGenerateCaption] = useTransition();
   const [isPublishingGoogle, startPublishGoogle] = useTransition();
+
+  const [hotpepper, setHotpepper] = useState(hotpepperContent ?? "");
+  const [hotpepperError, setHotpepperError] = useState<string | null>(null);
+  const [isGeneratingHotpepper, startGenerateHotpepper] = useTransition();
+  const [copied, setCopied] = useState(false);
 
   const handleGenerate = () => {
     setError(null);
@@ -91,6 +99,29 @@ export function PostItem({
         setGoogleId(result.googlePostId ?? null);
       }
     });
+  };
+
+  const handleGenerateHotpepper = () => {
+    setHotpepperError(null);
+    setCopied(false);
+    startGenerateHotpepper(async () => {
+      const result = await generateHotpepperContentAction(id);
+      if (result.error) {
+        setHotpepperError(result.error);
+      } else {
+        setHotpepper(result.content ?? "");
+      }
+    });
+  };
+
+  const handleCopyHotpepper = async () => {
+    try {
+      await navigator.clipboard.writeText(hotpepper);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setHotpepperError("コピーに失敗しました。手動で選択してコピーしてください");
+    }
   };
 
   return (
@@ -231,6 +262,57 @@ export function PostItem({
           )}
         </div>
       )}
+
+      <div className="mt-3 border-t border-gray-100 pt-3">
+        <p className="mb-2 text-xs font-medium text-gray-400">
+          ホットペッパービューティー用文章(コピペ用・自動投稿なし)
+        </p>
+        {!hotpepper && (
+          <button
+            type="button"
+            onClick={handleGenerateHotpepper}
+            disabled={isGeneratingHotpepper}
+            className="rounded border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+          >
+            {isGeneratingHotpepper ? "生成中..." : "AIで文章を生成"}
+          </button>
+        )}
+
+        {hotpepper && (
+          <div className="space-y-2">
+            <textarea
+              value={hotpepper}
+              onChange={(e) => setHotpepper(e.target.value)}
+              rows={5}
+              className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm"
+            />
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleGenerateHotpepper}
+                disabled={isGeneratingHotpepper}
+                className="rounded border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              >
+                {isGeneratingHotpepper ? "再生成中..." : "再生成"}
+              </button>
+              <button
+                type="button"
+                onClick={handleCopyHotpepper}
+                className="rounded bg-gray-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-700"
+              >
+                {copied ? "コピーしました" : "文章をコピー"}
+              </button>
+            </div>
+            <p className="text-xs text-gray-400">
+              ホットペッパービューティーには公式APIがないため、この文章をコピーして管理画面に貼り付けてください。
+            </p>
+          </div>
+        )}
+
+        {hotpepperError && (
+          <p className="mt-2 text-sm text-red-600">{hotpepperError}</p>
+        )}
+      </div>
     </li>
   );
 }
