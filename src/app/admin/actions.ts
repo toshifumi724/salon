@@ -3,8 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { getDefaultSalonId } from "@/lib/salon";
-import { generateBlogPost } from "@/lib/claude";
+import { generateBlogPost, generateGoogleCaption } from "@/lib/claude";
 import { createWordPressPost } from "@/lib/wordpress";
+import { createGoogleLocalPost } from "@/lib/google";
 
 export type CreatePostState = { error?: string; success?: boolean };
 
@@ -176,5 +177,68 @@ export async function publishToWordPress(
   } catch (err) {
     const message = err instanceof Error ? err.message : "不明なエラー";
     return { error: `WordPressへの投稿に失敗しました: ${message}` };
+  }
+}
+
+export type GenerateGoogleCaptionState = {
+  caption?: string;
+  error?: string;
+};
+
+export async function generateGoogleCaptionAction(
+  postId: string
+): Promise<GenerateGoogleCaptionState> {
+  try {
+    const supabase = createServiceRoleClient();
+    const { data: post, error } = await supabase
+      .from("posts")
+      .select("comment")
+      .eq("id", postId)
+      .single();
+
+    if (error || !post) {
+      return { error: "投稿が見つかりません" };
+    }
+
+    const caption = await generateGoogleCaption(post.comment);
+    return { caption };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "不明なエラー";
+    return { error: `Google投稿文の生成に失敗しました: ${message}` };
+  }
+}
+
+export type PublishGoogleState = { googlePostId?: string; error?: string };
+
+export async function publishToGoogle(
+  postId: string,
+  caption: string
+): Promise<PublishGoogleState> {
+  const trimmedCaption = caption.trim();
+  if (!trimmedCaption) {
+    return { error: "投稿文を入力してください" };
+  }
+
+  try {
+    const googlePostId = await createGoogleLocalPost(trimmedCaption);
+
+    const supabase = createServiceRoleClient();
+    const { error } = await supabase
+      .from("posts")
+      .update({
+        google_post_id: googlePostId,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", postId);
+
+    if (error) {
+      return { error: `Google投稿IDの保存に失敗しました: ${error.message}` };
+    }
+
+    revalidatePath("/admin");
+    return { googlePostId };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "不明なエラー";
+    return { error: `Googleへの投稿に失敗しました: ${message}` };
   }
 }

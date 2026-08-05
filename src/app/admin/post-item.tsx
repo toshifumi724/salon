@@ -1,7 +1,12 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { generateBlogContent, publishToWordPress } from "./actions";
+import {
+  generateBlogContent,
+  publishToWordPress,
+  generateGoogleCaptionAction,
+  publishToGoogle,
+} from "./actions";
 
 type Props = {
   id: string;
@@ -11,6 +16,8 @@ type Props = {
   blogTitle: string | null;
   blogContent: string | null;
   wordpressPostId: string | null;
+  googlePostId: string | null;
+  isGoogleConnected: boolean;
 };
 
 export function PostItem({
@@ -21,6 +28,8 @@ export function PostItem({
   blogTitle,
   blogContent,
   wordpressPostId,
+  googlePostId,
+  isGoogleConnected,
 }: Props) {
   const [title, setTitle] = useState(blogTitle ?? "");
   const [content, setContent] = useState(blogContent ?? "");
@@ -28,6 +37,12 @@ export function PostItem({
   const [error, setError] = useState<string | null>(null);
   const [isGenerating, startGenerate] = useTransition();
   const [isPublishing, startPublish] = useTransition();
+
+  const [caption, setCaption] = useState("");
+  const [googleId, setGoogleId] = useState(googlePostId);
+  const [googleError, setGoogleError] = useState<string | null>(null);
+  const [isGeneratingCaption, startGenerateCaption] = useTransition();
+  const [isPublishingGoogle, startPublishGoogle] = useTransition();
 
   const handleGenerate = () => {
     setError(null);
@@ -54,6 +69,30 @@ export function PostItem({
     });
   };
 
+  const handleGenerateCaption = () => {
+    setGoogleError(null);
+    startGenerateCaption(async () => {
+      const result = await generateGoogleCaptionAction(id);
+      if (result.error) {
+        setGoogleError(result.error);
+      } else {
+        setCaption(result.caption ?? "");
+      }
+    });
+  };
+
+  const handlePublishGoogle = () => {
+    setGoogleError(null);
+    startPublishGoogle(async () => {
+      const result = await publishToGoogle(id, caption);
+      if (result.error) {
+        setGoogleError(result.error);
+      } else {
+        setGoogleId(result.googlePostId ?? null);
+      }
+    });
+  };
+
   return (
     <li className="rounded border border-gray-200 p-4">
       <div className="mb-2 flex gap-2 overflow-x-auto">
@@ -75,6 +114,9 @@ export function PostItem({
       </p>
 
       <div className="mt-3 border-t border-gray-100 pt-3">
+        <p className="mb-2 text-xs font-medium text-gray-400">
+          ブログ記事(WordPress)
+        </p>
         {!content && (
           <button
             type="button"
@@ -131,6 +173,64 @@ export function PostItem({
 
         {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
       </div>
+
+      {isGoogleConnected && (
+        <div className="mt-3 border-t border-gray-100 pt-3">
+          <p className="mb-2 text-xs font-medium text-gray-400">
+            Googleビジネスプロフィール投稿
+          </p>
+          {!caption && !googleId && (
+            <button
+              type="button"
+              onClick={handleGenerateCaption}
+              disabled={isGeneratingCaption}
+              className="rounded border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+            >
+              {isGeneratingCaption ? "生成中..." : "AIで投稿文を生成"}
+            </button>
+          )}
+
+          {(caption || googleId) && (
+            <div className="space-y-2">
+              <textarea
+                value={caption}
+                onChange={(e) => setCaption(e.target.value)}
+                disabled={!!googleId}
+                rows={3}
+                className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm disabled:bg-gray-50"
+              />
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleGenerateCaption}
+                  disabled={isGeneratingCaption || !!googleId}
+                  className="rounded border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                >
+                  {isGeneratingCaption ? "再生成中..." : "再生成"}
+                </button>
+                {googleId ? (
+                  <span className="text-sm text-green-600">
+                    Google投稿済み
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handlePublishGoogle}
+                    disabled={isPublishingGoogle}
+                    className="rounded bg-gray-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-700 disabled:opacity-50"
+                  >
+                    {isPublishingGoogle ? "投稿中..." : "Googleに投稿"}
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {googleError && (
+            <p className="mt-2 text-sm text-red-600">{googleError}</p>
+          )}
+        </div>
+      )}
     </li>
   );
 }
