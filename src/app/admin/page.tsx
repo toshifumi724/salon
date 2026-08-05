@@ -64,14 +64,22 @@ export default async function AdminPage({
     <main className="mx-auto max-w-2xl px-4 py-8">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-xl font-semibold text-gray-900">投稿管理</h1>
-        <form action={logout}>
-          <button
-            type="submit"
+        <div className="flex items-center gap-4">
+          <Link
+            href="/admin/settings"
             className="text-sm text-gray-500 hover:underline"
           >
-            ログアウト
-          </button>
-        </form>
+            連携設定
+          </Link>
+          <form action={logout}>
+            <button
+              type="submit"
+              className="text-sm text-gray-500 hover:underline"
+            >
+              ログアウト
+            </button>
+          </form>
+        </div>
       </div>
 
       {params.google_error && (

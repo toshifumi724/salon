@@ -1,6 +1,6 @@
 import "server-only";
 import { createServiceRoleClient } from "@/lib/supabase/server";
-import { getDefaultSalonId } from "@/lib/salon";
+import { getCurrentSalonId } from "@/lib/salon";
 import { listGoogleReviews } from "@/lib/google";
 
 /**
@@ -10,7 +10,7 @@ import { listGoogleReviews } from "@/lib/google";
 export async function syncReviewsFromGoogle(): Promise<void> {
   const reviews = await listGoogleReviews();
   const supabase = createServiceRoleClient();
-  const salonId = await getDefaultSalonId();
+  const salonId = await getCurrentSalonId();
 
   for (const review of reviews) {
     await supabase.from("reviews").upsert(

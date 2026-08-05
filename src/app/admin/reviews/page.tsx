@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { createServiceRoleClient } from "@/lib/supabase/server";
-import { getDefaultSalonId } from "@/lib/salon";
+import { getCurrentSalonId } from "@/lib/salon";
 import { getGoogleConnection } from "@/lib/google";
 import { syncReviewsFromGoogle } from "@/lib/reviews";
 import { ReviewItem } from "./review-item";
@@ -27,7 +27,7 @@ async function getReviews(): Promise<{ reviews: ReviewRow[]; syncError: string |
   }
 
   const supabase = createServiceRoleClient();
-  const salonId = await getDefaultSalonId();
+  const salonId = await getCurrentSalonId();
   const { data } = await supabase
     .from("reviews")
     .select(
