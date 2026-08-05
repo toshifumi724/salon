@@ -1,8 +1,12 @@
+import Link from "next/link";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { logout } from "@/app/login/logout-action";
 import { getGoogleConnection } from "@/lib/google";
 import { UploadForm } from "./upload-form";
 import { PostItem } from "./post-item";
+
+// ログイン状態や投稿データは常に最新を返す必要があるため、静的化させない
+export const dynamic = "force-dynamic";
 
 type PostRow = {
   id: string;
@@ -85,7 +89,15 @@ export default async function AdminPage({
           Googleビジネスプロフィール連携
         </h2>
         {googleConnection ? (
-          <p className="text-sm text-green-600">連携済みです</p>
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-green-600">連携済みです</p>
+            <Link
+              href="/admin/reviews"
+              className="text-sm text-gray-700 hover:underline"
+            >
+              口コミ管理へ →
+            </Link>
+          </div>
         ) : (
           <div>
             <p className="mb-2 text-sm text-gray-500">

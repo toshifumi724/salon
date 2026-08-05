@@ -94,3 +94,63 @@ export async function generateGoogleCaption(comment: string): Promise<string> {
 
   return (response.parsed_output as { caption: string }).caption;
 }
+
+const STAR_RATING_LABELS: Record<string, string> = {
+  ONE: "1",
+  TWO: "2",
+  THREE: "3",
+  FOUR: "4",
+  FIVE: "5",
+};
+
+export async function generateReviewReply({
+  comment,
+  starRating,
+  reviewerName,
+}: {
+  comment: string | null;
+  starRating: string | null;
+  reviewerName: string | null;
+}): Promise<string> {
+  const client = getClient();
+
+  const ratingLabel = starRating ? STAR_RATING_LABELS[starRating] : null;
+
+  const response = await client.messages.parse({
+    model: MODEL,
+    max_tokens: 1000,
+    system:
+      "あなたは美容室のオーナーです。お客様からのGoogle口コミに対する返信文を日本語で作成してください。丁寧で温かみのある言葉遣いにし、低評価(1〜3)の場合は謝意と改善への誠実な姿勢を示し、高評価(4〜5)の場合は感謝を伝えてください。定型文っぽくならないよう、口コミの内容に具体的に触れてください。300文字以内でまとめてください。",
+    messages: [
+      {
+        role: "user",
+        content: [
+          reviewerName ? `お客様のお名前: ${reviewerName}` : null,
+          ratingLabel ? `評価: ${ratingLabel}/5` : null,
+          `口コミ本文:\n${comment ?? "(本文なし)"}`,
+        ]
+          .filter(Boolean)
+          .join("\n"),
+      },
+    ],
+    output_config: {
+      format: {
+        type: "json_schema",
+        schema: {
+          type: "object",
+          properties: {
+            reply: { type: "string", description: "口コミへの返信文" },
+          },
+          required: ["reply"],
+          additionalProperties: false,
+        },
+      },
+    },
+  });
+
+  if (!response.parsed_output) {
+    throw new Error("Claude APIからの応答を解析できませんでした");
+  }
+
+  return (response.parsed_output as { reply: string }).reply;
+}

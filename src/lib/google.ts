@@ -207,17 +207,24 @@ async function getValidAccessToken(connection: GoogleConnection): Promise<string
   return tokens.access_token;
 }
 
+async function getAuthorizedConnection(): Promise<{
+  accessToken: string;
+  connection: GoogleConnection;
+}> {
+  const connection = await getGoogleConnection();
+  if (!connection) {
+    throw new Error("Googleアカウントが連携されていません");
+  }
+  const accessToken = await getValidAccessToken(connection);
+  return { accessToken, connection };
+}
+
 /**
  * Googleビジネスプロフィールに投稿(Local Post)を作成する。
  * 画像は含めず、テキストのみのシンプルな投稿(MVP)。
  */
 export async function createGoogleLocalPost(summary: string): Promise<string> {
-  const connection = await getGoogleConnection();
-  if (!connection) {
-    throw new Error("Googleアカウントが連携されていません");
-  }
-
-  const accessToken = await getValidAccessToken(connection);
+  const { accessToken, connection } = await getAuthorizedConnection();
 
   const res = await fetch(
     `https://mybusiness.googleapis.com/v4/${connection.google_account_id}/${connection.google_location_id}/localPosts`,
@@ -242,4 +249,81 @@ export async function createGoogleLocalPost(summary: string): Promise<string> {
 
   const data = await res.json();
   return data.name as string;
+}
+
+export type GoogleReview = {
+  name: string; // "accounts/*/locations/*/reviews/*"
+  reviewerName: string | null;
+  starRating: string | null;
+  comment: string | null;
+  createTime: string | null;
+  existingReplyComment: string | null;
+};
+
+/**
+ * Googleビジネスプロフィールに投稿された口コミの一覧を取得する。
+ */
+export async function listGoogleReviews(): Promise<GoogleReview[]> {
+  const { accessToken, connection } = await getAuthorizedConnection();
+
+  const reviews: GoogleReview[] = [];
+  let pageToken: string | undefined;
+
+  do {
+    const url = new URL(
+      `https://mybusiness.googleapis.com/v4/${connection.google_account_id}/${connection.google_location_id}/reviews`
+    );
+    if (pageToken) url.searchParams.set("pageToken", pageToken);
+
+    const res = await fetch(url.toString(), {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`口コミの取得に失敗しました: ${text.slice(0, 300)}`);
+    }
+
+    const data = await res.json();
+    for (const r of data.reviews ?? []) {
+      reviews.push({
+        name: r.name,
+        reviewerName: r.reviewer?.displayName ?? null,
+        starRating: r.starRating ?? null,
+        comment: r.comment ?? null,
+        createTime: r.createTime ?? null,
+        existingReplyComment: r.reviewReply?.comment ?? null,
+      });
+    }
+    pageToken = data.nextPageToken;
+  } while (pageToken);
+
+  return reviews;
+}
+
+/**
+ * 口コミへの返信を送信する(既に返信がある場合は上書き)。
+ */
+export async function replyToGoogleReview(
+  reviewName: string,
+  comment: string
+): Promise<void> {
+  const { accessToken } = await getAuthorizedConnection();
+
+  const res = await fetch(
+    `https://mybusiness.googleapis.com/v4/${reviewName}/reply`,
+    {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ comment }),
+    }
+  );
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`口コミへの返信送信に失敗しました: ${text.slice(0, 300)}`);
+  }
 }
