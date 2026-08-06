@@ -26,11 +26,11 @@ export default async function AdminDashboardPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-bold">予約一覧(今後の予約)</h1>
-      {grouped.size === 0 && <p className="text-sm text-gray-500">今後の予約はありません。</p>}
+      <h1 className="font-heading text-2xl tracking-wide text-brand-heading">予約一覧(今後の予約)</h1>
+      {grouped.size === 0 && <p className="text-sm text-brand-text/60">今後の予約はありません。</p>}
       {[...grouped.entries()].map(([date, list]) => (
         <div key={date}>
-          <h2 className="mb-2 font-bold">{date}</h2>
+          <h2 className="mb-2 font-bold text-brand-strong">{date}</h2>
           <div className="space-y-2">
             {list!.map((r) => {
               const minutes = jstMinutesOfDay(r.start_at);
@@ -38,7 +38,10 @@ export default async function AdminDashboardPage() {
               const menu = r.menus as unknown as { name: string } | null;
               const staff = r.staff as unknown as { name: string } | null;
               return (
-                <div key={r.id} className="rounded border p-2 text-sm">
+                <div
+                  key={r.id}
+                  className="rounded-lg border border-brand-divider bg-brand-surface p-2 text-sm text-brand-text shadow-sm"
+                >
                   <p>
                     {timeLabel} - {menu?.name}（担当: {staff?.name}）
                   </p>

@@ -14,7 +14,7 @@ export default async function ReservationManagePage({ params }: { params: Promis
     .maybeSingle();
 
   if (!reservation) {
-    return <main className="mx-auto max-w-md p-4">予約が見つかりませんでした。</main>;
+    return <main className="mx-auto max-w-md bg-brand-bg p-4 text-brand-text">予約が見つかりませんでした。</main>;
   }
 
   const menu = reservation.menus as unknown as { name: string; duration_minutes: number; price_yen: number } | null;
@@ -22,9 +22,9 @@ export default async function ReservationManagePage({ params }: { params: Promis
   const timeLabel = `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
 
   return (
-    <main className="mx-auto max-w-md space-y-4 p-4">
-      <h1 className="text-xl font-bold">ご予約内容</h1>
-      <div className="rounded border p-4">
+    <main className="mx-auto max-w-md space-y-4 bg-brand-bg p-4">
+      <h1 className="font-heading text-2xl tracking-wide text-brand-heading">ご予約内容</h1>
+      <div className="space-y-1 rounded-lg border border-brand-divider bg-brand-surface p-4 text-brand-text shadow-sm">
         <p>お名前: {reservation.guest_name} 様</p>
         <p>メニュー: {menu?.name}</p>
         <p>
@@ -36,7 +36,7 @@ export default async function ReservationManagePage({ params }: { params: Promis
       {reservation.status === "confirmed" && (
         <div className="space-y-2">
           <CancelButton reservationId={reservation.id} token={token} />
-          <a href="/book" className="block text-center text-blue-600 underline">
+          <a href="/book" className="block text-center text-brand-strong underline hover:text-brand-heading">
             日時を変更する場合はこちら(現在の予約はキャンセルされます)
           </a>
         </div>

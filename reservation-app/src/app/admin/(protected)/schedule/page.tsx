@@ -38,15 +38,23 @@ export default async function SchedulePage() {
   return (
     <div className="space-y-8">
       <section>
-        <h1 className="mb-4 text-xl font-bold">基本営業時間</h1>
+        <h1 className="mb-4 font-heading text-2xl tracking-wide text-brand-heading">基本営業時間</h1>
         <form action={updateBusinessHours} className="space-y-2">
           {DAY_LABELS.map((label, day) => {
             const bh = businessHours.get(day);
             return (
-              <div key={day} className="flex flex-wrap items-center gap-2 rounded border p-2 text-sm">
-                <span className="w-8 font-bold">{label}</span>
+              <div
+                key={day}
+                className="flex flex-wrap items-center gap-2 rounded-lg border border-brand-divider bg-brand-surface p-2 text-sm text-brand-text shadow-sm"
+              >
+                <span className="w-8 font-bold text-brand-strong">{label}</span>
                 <label className="flex items-center gap-1">
-                  <input type="checkbox" name={`closed_${day}`} defaultChecked={bh?.is_closed ?? false} />
+                  <input
+                    type="checkbox"
+                    name={`closed_${day}`}
+                    defaultChecked={bh?.is_closed ?? false}
+                    className="accent-brand-strong"
+                  />
                   定休日
                 </label>
                 <input
@@ -54,7 +62,7 @@ export default async function SchedulePage() {
                   name={`open_${day}`}
                   step={1800}
                   defaultValue={bh?.open_time?.slice(0, 5) ?? "09:00"}
-                  className="rounded border p-1"
+                  className="rounded border border-brand-divider bg-white p-1 focus:border-brand-heading focus:outline-none"
                 />
                 〜
                 <input
@@ -62,20 +70,23 @@ export default async function SchedulePage() {
                   name={`close_${day}`}
                   step={1800}
                   defaultValue={bh?.close_time?.slice(0, 5) ?? "18:00"}
-                  className="rounded border p-1"
+                  className="rounded border border-brand-divider bg-white p-1 focus:border-brand-heading focus:outline-none"
                 />
               </div>
             );
           })}
-          <button type="submit" className="rounded bg-black px-4 py-2 text-white">
+          <button
+            type="submit"
+            className="rounded bg-brand-strong px-4 py-2 text-white transition-colors hover:bg-brand-heading"
+          >
             保存する
           </button>
         </form>
       </section>
 
       <section>
-        <h1 className="mb-2 text-xl font-bold">特定日の予約枠を手動調整</h1>
-        <p className="mb-4 text-sm text-gray-600">
+        <h1 className="mb-2 font-heading text-2xl tracking-wide text-brand-heading">特定日の予約枠を手動調整</h1>
+        <p className="mb-4 text-sm text-brand-text/70">
           通常はメニューの所要時間から自動で予約枠が計算されます。特定の日だけ枠を変更したい場合や、臨時休業にしたい場合はこちらで設定してください。
         </p>
         <DailyOverrideEditor staffList={(staff ?? []) as Staff[]} menus={(menus ?? []) as Menu[]} />

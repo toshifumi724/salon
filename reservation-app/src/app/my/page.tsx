@@ -28,15 +28,15 @@ export default async function MyReservationsPage() {
     : { data: [] };
 
   return (
-    <main className="mx-auto max-w-md space-y-4 p-4">
-      <h1 className="text-xl font-bold">マイ予約</h1>
-      {(reservations ?? []).length === 0 && <p className="text-sm text-gray-500">予約履歴がありません。</p>}
+    <main className="mx-auto max-w-md space-y-4 bg-brand-bg p-4">
+      <h1 className="font-heading text-2xl tracking-wide text-brand-heading">マイ予約</h1>
+      {(reservations ?? []).length === 0 && <p className="text-sm text-brand-text/60">予約履歴がありません。</p>}
       {(reservations ?? []).map((r) => {
         const menu = r.menus as unknown as { name: string } | null;
         const minutes = jstMinutesOfDay(r.start_at);
         const timeLabel = `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
         return (
-          <div key={r.id} className="space-y-2 rounded border p-4">
+          <div key={r.id} className="space-y-2 rounded-lg border border-brand-divider bg-brand-surface p-4 text-brand-text shadow-sm">
             <p>メニュー: {menu?.name}</p>
             <p>
               日時: {jstDateOf(r.start_at)} {timeLabel}
@@ -46,7 +46,7 @@ export default async function MyReservationsPage() {
           </div>
         );
       })}
-      <a href="/book" className="block text-center text-blue-600 underline">
+      <a href="/book" className="block text-center text-brand-strong underline hover:text-brand-heading">
         新しく予約する
       </a>
     </main>

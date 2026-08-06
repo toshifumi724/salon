@@ -61,10 +61,14 @@ export default function DailyOverrideEditor({ staffList, menus }: { staffList: S
   }
 
   return (
-    <div className="space-y-4 rounded border p-4">
+    <div className="space-y-4 rounded-lg border border-brand-divider bg-brand-surface p-4 shadow-sm">
       <div className="flex flex-wrap gap-2">
         {staffList.length > 1 && (
-          <select value={staffId} onChange={(e) => setStaffId(e.target.value)} className="rounded border p-2">
+          <select
+            value={staffId}
+            onChange={(e) => setStaffId(e.target.value)}
+            className="rounded border border-brand-divider bg-white p-2 text-brand-text"
+          >
             {staffList.map((s) => (
               <option key={s.id} value={s.id}>
                 {s.name}
@@ -72,8 +76,17 @@ export default function DailyOverrideEditor({ staffList, menus }: { staffList: S
             ))}
           </select>
         )}
-        <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="rounded border p-2" />
-        <select value={menuId} onChange={(e) => setMenuId(e.target.value)} className="rounded border p-2">
+        <input
+          type="date"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+          className="rounded border border-brand-divider bg-white p-2 text-brand-text"
+        />
+        <select
+          value={menuId}
+          onChange={(e) => setMenuId(e.target.value)}
+          className="rounded border border-brand-divider bg-white p-2 text-brand-text"
+        >
           {menus.map((m) => (
             <option key={m.id} value={m.id}>
               {m.name}({m.duration_minutes}分) の場合で自動計算をプレビュー
@@ -82,19 +95,27 @@ export default function DailyOverrideEditor({ staffList, menus }: { staffList: S
         </select>
       </div>
 
-      <p className="text-sm text-gray-600">自動計算した場合の枠: {autoSlots.join(", ") || "なし"}</p>
+      <p className="text-sm text-brand-text/70">自動計算した場合の枠: {autoSlots.join(", ") || "なし"}</p>
 
-      <label className="flex items-center gap-2 text-sm">
-        <input type="checkbox" checked={isClosed} onChange={(e) => setIsClosed(e.target.checked)} />
+      <label className="flex items-center gap-2 text-sm text-brand-text">
+        <input
+          type="checkbox"
+          checked={isClosed}
+          onChange={(e) => setIsClosed(e.target.checked)}
+          className="accent-brand-strong"
+        />
         この日は臨時休業にする
       </label>
 
       {!isClosed && (
         <div>
-          <p className="mb-1 text-sm font-bold">この日の予約開始時刻(手動指定・30分刻み)</p>
+          <p className="mb-1 text-sm font-bold text-brand-strong">この日の予約開始時刻(手動指定・30分刻み)</p>
           <div className="mb-2 flex flex-wrap gap-2">
             {times.map((t) => (
-              <span key={t} className="flex items-center gap-1 rounded border px-2 py-1 text-sm">
+              <span
+                key={t}
+                className="flex items-center gap-1 rounded border border-brand-divider bg-white px-2 py-1 text-sm text-brand-text"
+              >
                 {t}
                 <button type="button" onClick={() => setTimes(times.filter((x) => x !== t))} className="text-red-600">
                   ×
@@ -108,14 +129,14 @@ export default function DailyOverrideEditor({ staffList, menus }: { staffList: S
               step={1800}
               value={newTime}
               onChange={(e) => setNewTime(e.target.value)}
-              className="rounded border p-1"
+              className="rounded border border-brand-divider bg-white p-1 text-brand-text"
             />
             <button
               type="button"
               onClick={() => {
                 if (!times.includes(newTime)) setTimes([...times, newTime].sort());
               }}
-              className="rounded border px-2 py-1 text-sm"
+              className="rounded border border-brand-divider px-2 py-1 text-sm text-brand-text hover:border-brand-heading"
             >
               追加
             </button>
@@ -124,10 +145,18 @@ export default function DailyOverrideEditor({ staffList, menus }: { staffList: S
       )}
 
       <div className="flex gap-2">
-        <button disabled={pending} onClick={save} className="rounded bg-black px-4 py-2 text-sm text-white">
+        <button
+          disabled={pending}
+          onClick={save}
+          className="rounded bg-brand-strong px-4 py-2 text-sm text-white transition-colors hover:bg-brand-heading"
+        >
           この日の設定を保存
         </button>
-        <button disabled={pending} onClick={clear} className="rounded border px-4 py-2 text-sm">
+        <button
+          disabled={pending}
+          onClick={clear}
+          className="rounded border border-brand-divider px-4 py-2 text-sm text-brand-text hover:border-brand-heading"
+        >
           自動計算に戻す(設定削除)
         </button>
       </div>

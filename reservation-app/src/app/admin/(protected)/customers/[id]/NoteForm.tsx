@@ -13,7 +13,7 @@ export default function NoteForm({ customerId }: { customerId: string }) {
         value={note}
         onChange={(e) => setNote(e.target.value)}
         placeholder="来店時のメモを追加"
-        className="flex-1 rounded border p-2 text-sm"
+        className="flex-1 rounded border border-brand-divider bg-brand-surface p-2 text-sm text-brand-text focus:border-brand-heading focus:outline-none"
       />
       <button
         disabled={pending || !note}
@@ -23,7 +23,7 @@ export default function NoteForm({ customerId }: { customerId: string }) {
             setNote("");
           })
         }
-        className="rounded bg-black px-4 py-2 text-sm text-white disabled:opacity-50"
+        className="rounded bg-brand-strong px-4 py-2 text-sm text-white transition-colors hover:bg-brand-heading disabled:opacity-50"
       >
         追加
       </button>

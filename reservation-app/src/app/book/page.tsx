@@ -16,8 +16,8 @@ export default async function BookPage() {
     .order("sort_order", { ascending: true });
 
   return (
-    <main className="mx-auto max-w-md p-4">
-      <h1 className="mb-4 text-xl font-bold">ご予約</h1>
+    <main className="mx-auto max-w-md bg-brand-bg p-4">
+      <h1 className="mb-4 font-heading text-2xl tracking-wide text-brand-heading">ご予約</h1>
       <BookingForm menus={(menus ?? []) as Menu[]} />
     </main>
   );

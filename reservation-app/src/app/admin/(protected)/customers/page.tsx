@@ -15,17 +15,21 @@ export default async function CustomersPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-bold">顧客管理</h1>
+      <h1 className="font-heading text-2xl tracking-wide text-brand-heading">顧客管理</h1>
       <div className="space-y-2">
         {(customers ?? []).map((c) => (
-          <Link key={c.id} href={`/admin/customers/${c.id}`} className="block rounded border p-2 text-sm">
-            <p className="font-bold">{c.name}</p>
-            <p className="text-gray-600">
+          <Link
+            key={c.id}
+            href={`/admin/customers/${c.id}`}
+            className="block rounded-lg border border-brand-divider bg-brand-surface p-2 text-sm shadow-sm hover:border-brand-heading"
+          >
+            <p className="font-bold text-brand-strong">{c.name}</p>
+            <p className="text-brand-text/70">
               {c.email} {c.phone}
             </p>
           </Link>
         ))}
-        {(customers ?? []).length === 0 && <p className="text-sm text-gray-500">顧客データがありません。</p>}
+        {(customers ?? []).length === 0 && <p className="text-sm text-brand-text/60">顧客データがありません。</p>}
       </div>
     </div>
   );

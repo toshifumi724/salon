@@ -66,10 +66,10 @@ export default function BookingForm({ menus }: { menus: Menu[] }) {
 
   if (result) {
     return (
-      <div className="rounded border p-4">
-        <p className="mb-2 font-bold">ご予約が確定しました。</p>
-        <p className="mb-4 text-sm text-gray-600">確認メールをお送りしました。</p>
-        <a className="text-blue-600 underline" href={`/r/${result.cancelToken}`}>
+      <div className="rounded-lg border border-brand-divider bg-brand-surface p-4 shadow-sm">
+        <p className="mb-2 font-heading text-lg text-brand-heading">ご予約が確定しました。</p>
+        <p className="mb-4 text-sm text-brand-text/70">確認メールをお送りしました。</p>
+        <a className="text-brand-strong underline hover:text-brand-heading" href={`/r/${result.cancelToken}`}>
           予約内容の確認・変更・キャンセルはこちら
         </a>
       </div>
@@ -79,17 +79,25 @@ export default function BookingForm({ menus }: { menus: Menu[] }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <section>
-        <h2 className="mb-2 font-bold">1. メニューを選択</h2>
+        <h2 className="mb-2 font-heading text-brand-heading">1. メニューを選択</h2>
         <div className="space-y-2">
           {menus.map((m) => (
-            <label key={m.id} className="flex items-center gap-2 rounded border p-2">
+            <label
+              key={m.id}
+              className={`flex items-center gap-2 rounded-lg border p-2 transition-colors ${
+                menuId === m.id
+                  ? "border-brand-strong bg-brand-surface"
+                  : "border-brand-divider bg-brand-surface/60"
+              }`}
+            >
               <input
                 type="radio"
                 name="menu"
                 checked={menuId === m.id}
                 onChange={() => setMenuId(m.id)}
+                className="accent-brand-strong"
               />
-              <span>
+              <span className="text-brand-text">
                 {m.name}（{m.duration_minutes}分・{m.price_yen.toLocaleString()}円）
               </span>
             </label>
@@ -98,21 +106,21 @@ export default function BookingForm({ menus }: { menus: Menu[] }) {
       </section>
 
       <section>
-        <h2 className="mb-2 font-bold">2. 日付を選択</h2>
+        <h2 className="mb-2 font-heading text-brand-heading">2. 日付を選択</h2>
         <input
           type="date"
           value={date}
           min={todayJST()}
           onChange={(e) => setDate(e.target.value)}
-          className="rounded border p-2"
+          className="rounded border border-brand-divider bg-brand-surface p-2 text-brand-text focus:border-brand-heading focus:outline-none"
         />
       </section>
 
       <section>
-        <h2 className="mb-2 font-bold">3. 時間を選択</h2>
-        {loadingSlots && <p className="text-sm text-gray-500">空き状況を確認中...</p>}
+        <h2 className="mb-2 font-heading text-brand-heading">3. 時間を選択</h2>
+        {loadingSlots && <p className="text-sm text-brand-text/60">空き状況を確認中...</p>}
         {!loadingSlots && slots.length === 0 && (
-          <p className="text-sm text-gray-500">この日は空きがありません。別の日をお選びください。</p>
+          <p className="text-sm text-brand-text/60">この日は空きがありません。別の日をお選びください。</p>
         )}
         <div className="flex flex-wrap gap-2">
           {slots.map((s) => (
@@ -120,7 +128,11 @@ export default function BookingForm({ menus }: { menus: Menu[] }) {
               type="button"
               key={s}
               onClick={() => setTime(s)}
-              className={`rounded border px-3 py-1 ${time === s ? "bg-black text-white" : ""}`}
+              className={`rounded border px-3 py-1 transition-colors ${
+                time === s
+                  ? "border-brand-strong bg-brand-strong text-white"
+                  : "border-brand-divider bg-brand-surface text-brand-text hover:border-brand-heading"
+              }`}
             >
               {s}
             </button>
@@ -130,13 +142,13 @@ export default function BookingForm({ menus }: { menus: Menu[] }) {
 
       {time && (
         <section className="space-y-2">
-          <h2 className="mb-2 font-bold">4. お客様情報</h2>
+          <h2 className="mb-2 font-heading text-brand-heading">4. お客様情報</h2>
           <input
             required
             placeholder="お名前"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full rounded border p-2"
+            className="w-full rounded border border-brand-divider bg-brand-surface p-2 text-brand-text focus:border-brand-heading focus:outline-none"
           />
           <input
             required
@@ -144,19 +156,19 @@ export default function BookingForm({ menus }: { menus: Menu[] }) {
             placeholder="メールアドレス"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full rounded border p-2"
+            className="w-full rounded border border-brand-divider bg-brand-surface p-2 text-brand-text focus:border-brand-heading focus:outline-none"
           />
           <input
             placeholder="電話番号(任意)"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            className="w-full rounded border p-2"
+            className="w-full rounded border border-brand-divider bg-brand-surface p-2 text-brand-text focus:border-brand-heading focus:outline-none"
           />
           {error && <p className="text-sm text-red-600">{error}</p>}
           <button
             type="submit"
             disabled={submitting}
-            className="w-full rounded bg-black p-2 text-white disabled:opacity-50"
+            className="w-full rounded bg-brand-strong p-2 text-white transition-colors hover:bg-brand-heading disabled:opacity-50"
           >
             {submitting ? "送信中..." : "この内容で予約する"}
           </button>

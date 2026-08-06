@@ -26,7 +26,7 @@ export default function CancelButton({ reservationId, token }: { reservationId: 
     <button
       onClick={handleCancel}
       disabled={submitting}
-      className="w-full rounded border border-red-600 p-2 text-red-600 disabled:opacity-50"
+      className="w-full rounded border border-red-700/70 bg-brand-surface p-2 text-red-700 transition-colors hover:bg-red-50 disabled:opacity-50"
     >
       {submitting ? "処理中..." : "予約をキャンセルする"}
     </button>
