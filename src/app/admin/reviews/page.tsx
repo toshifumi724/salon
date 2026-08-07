@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { getCurrentSalonId } from "@/lib/salon";
 import { getGoogleConnection } from "@/lib/google";
@@ -44,36 +43,31 @@ export default async function ReviewsPage() {
 
   if (!connection) {
     return (
-      <main className="mx-auto max-w-2xl px-4 py-8">
-        <Link href="/admin" className="text-sm text-gray-500 hover:underline">
-          ← 投稿管理に戻る
-        </Link>
-        <p className="mt-4 text-sm text-gray-600">
+      <>
+        <h1 className="mb-6 text-xl font-semibold text-stone-900">口コミ管理</h1>
+        <p className="rounded-xl border border-dashed border-stone-300 bg-white px-4 py-8 text-center text-sm text-stone-500">
           Googleビジネスプロフィールが連携されていません。先に投稿管理画面から連携してください。
         </p>
-      </main>
+      </>
     );
   }
 
   const { reviews, syncError } = await getReviews();
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-8">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-gray-900">口コミ管理</h1>
-        <Link href="/admin" className="text-sm text-gray-500 hover:underline">
-          ← 投稿管理に戻る
-        </Link>
-      </div>
+    <>
+      <h1 className="mb-6 text-xl font-semibold text-stone-900">口コミ管理</h1>
 
       {syncError && (
-        <p className="mb-4 rounded border border-red-200 bg-red-50 p-3 text-sm text-red-600">
+        <p className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
           口コミの取得に失敗しました: {syncError}
         </p>
       )}
 
       {reviews.length === 0 && !syncError && (
-        <p className="text-sm text-gray-400">口コミがまだありません</p>
+        <p className="rounded-xl border border-dashed border-stone-300 bg-white px-4 py-8 text-center text-sm text-stone-400">
+          口コミがまだありません
+        </p>
       )}
 
       <ul className="space-y-4">
@@ -90,6 +84,6 @@ export default async function ReviewsPage() {
           />
         ))}
       </ul>
-    </main>
+    </>
   );
 }

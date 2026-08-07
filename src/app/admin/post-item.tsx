@@ -22,6 +22,24 @@ type Props = {
   hotpepperContent: string | null;
 };
 
+function StatusBadge({ label }: { label: string }) {
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
+      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+      {label}
+    </span>
+  );
+}
+
+const inputClass =
+  "w-full rounded-lg border border-stone-300 px-2.5 py-1.5 text-sm text-stone-900 outline-none transition focus:border-rose-500 focus:ring-2 focus:ring-rose-100 disabled:bg-stone-50 disabled:text-stone-500";
+
+const secondaryButtonClass =
+  "rounded-lg border border-stone-300 px-3 py-1.5 text-sm text-stone-700 transition hover:bg-stone-50 disabled:opacity-50";
+
+const primaryButtonClass =
+  "rounded-lg bg-rose-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-rose-700 disabled:opacity-50";
+
 export function PostItem({
   id,
   comment,
@@ -125,27 +143,30 @@ export function PostItem({
   };
 
   return (
-    <li className="rounded border border-gray-200 p-4">
-      <div className="mb-2 flex gap-2 overflow-x-auto">
-        {images.map((img) =>
-          img.url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              key={img.id}
-              src={img.url}
-              alt=""
-              className="h-24 w-24 flex-shrink-0 rounded object-cover"
-            />
-          ) : null
-        )}
-      </div>
-      <p className="text-sm text-gray-800">{comment}</p>
-      <p className="mt-1 text-xs text-gray-400">
+    <li className="rounded-xl border border-stone-200 bg-white p-5 shadow-sm">
+      {images.length > 0 && (
+        <div className="mb-3 flex gap-2 overflow-x-auto">
+          {images.map((img) =>
+            img.url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key={img.id}
+                src={img.url}
+                alt=""
+                className="h-24 w-24 flex-shrink-0 rounded-lg border border-stone-100 object-cover"
+              />
+            ) : null
+          )}
+        </div>
+      )}
+      <p className="text-sm text-stone-800">{comment}</p>
+      <p className="mt-1 text-xs text-stone-400">
         {new Date(createdAt).toLocaleString("ja-JP")}
       </p>
 
-      <div className="mt-3 border-t border-gray-100 pt-3">
-        <p className="mb-2 text-xs font-medium text-gray-400">
+      {/* WordPress */}
+      <div className="mt-4 border-t border-stone-100 pt-4">
+        <p className="mb-2 text-xs font-medium tracking-wide text-stone-400">
           ブログ記事(WordPress)
         </p>
         {!content && (
@@ -153,7 +174,7 @@ export function PostItem({
             type="button"
             onClick={handleGenerate}
             disabled={isGenerating}
-            className="rounded border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+            className={secondaryButtonClass}
           >
             {isGenerating ? "生成中..." : "AIでブログ記事を生成"}
           </button>
@@ -166,34 +187,32 @@ export function PostItem({
               onChange={(e) => setTitle(e.target.value)}
               disabled={!!wpId}
               placeholder="タイトル"
-              className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm disabled:bg-gray-50"
+              className={inputClass}
             />
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
               disabled={!!wpId}
               rows={6}
-              className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm disabled:bg-gray-50"
+              className={inputClass}
             />
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={handleGenerate}
                 disabled={isGenerating || !!wpId}
-                className="rounded border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                className={secondaryButtonClass}
               >
                 {isGenerating ? "再生成中..." : "再生成"}
               </button>
               {wpId ? (
-                <span className="text-sm text-green-600">
-                  WordPress投稿済み(ID: {wpId})
-                </span>
+                <StatusBadge label={`投稿済み(ID: ${wpId})`} />
               ) : (
                 <button
                   type="button"
                   onClick={handlePublish}
                   disabled={isPublishing}
-                  className="rounded bg-gray-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-700 disabled:opacity-50"
+                  className={primaryButtonClass}
                 >
                   {isPublishing ? "投稿中..." : "WordPressに投稿(下書き)"}
                 </button>
@@ -205,9 +224,10 @@ export function PostItem({
         {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
       </div>
 
+      {/* Google */}
       {isGoogleConnected && (
-        <div className="mt-3 border-t border-gray-100 pt-3">
-          <p className="mb-2 text-xs font-medium text-gray-400">
+        <div className="mt-4 border-t border-stone-100 pt-4">
+          <p className="mb-2 text-xs font-medium tracking-wide text-stone-400">
             Googleビジネスプロフィール投稿
           </p>
           {!caption && !googleId && (
@@ -215,7 +235,7 @@ export function PostItem({
               type="button"
               onClick={handleGenerateCaption}
               disabled={isGeneratingCaption}
-              className="rounded border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              className={secondaryButtonClass}
             >
               {isGeneratingCaption ? "生成中..." : "AIで投稿文を生成"}
             </button>
@@ -228,27 +248,25 @@ export function PostItem({
                 onChange={(e) => setCaption(e.target.value)}
                 disabled={!!googleId}
                 rows={3}
-                className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm disabled:bg-gray-50"
+                className={inputClass}
               />
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={handleGenerateCaption}
                   disabled={isGeneratingCaption || !!googleId}
-                  className="rounded border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                  className={secondaryButtonClass}
                 >
                   {isGeneratingCaption ? "再生成中..." : "再生成"}
                 </button>
                 {googleId ? (
-                  <span className="text-sm text-green-600">
-                    Google投稿済み
-                  </span>
+                  <StatusBadge label="投稿済み" />
                 ) : (
                   <button
                     type="button"
                     onClick={handlePublishGoogle}
                     disabled={isPublishingGoogle}
-                    className="rounded bg-gray-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-700 disabled:opacity-50"
+                    className={primaryButtonClass}
                   >
                     {isPublishingGoogle ? "投稿中..." : "Googleに投稿"}
                   </button>
@@ -263,8 +281,9 @@ export function PostItem({
         </div>
       )}
 
-      <div className="mt-3 border-t border-gray-100 pt-3">
-        <p className="mb-2 text-xs font-medium text-gray-400">
+      {/* Hot Pepper */}
+      <div className="mt-4 border-t border-stone-100 pt-4">
+        <p className="mb-2 text-xs font-medium tracking-wide text-stone-400">
           ホットペッパービューティー用文章(コピペ用・自動投稿なし)
         </p>
         {!hotpepper && (
@@ -272,7 +291,7 @@ export function PostItem({
             type="button"
             onClick={handleGenerateHotpepper}
             disabled={isGeneratingHotpepper}
-            className="rounded border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+            className={secondaryButtonClass}
           >
             {isGeneratingHotpepper ? "生成中..." : "AIで文章を生成"}
           </button>
@@ -284,26 +303,26 @@ export function PostItem({
               value={hotpepper}
               onChange={(e) => setHotpepper(e.target.value)}
               rows={5}
-              className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm"
+              className={inputClass}
             />
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={handleGenerateHotpepper}
                 disabled={isGeneratingHotpepper}
-                className="rounded border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                className={secondaryButtonClass}
               >
                 {isGeneratingHotpepper ? "再生成中..." : "再生成"}
               </button>
               <button
                 type="button"
                 onClick={handleCopyHotpepper}
-                className="rounded bg-gray-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-700"
+                className={primaryButtonClass}
               >
                 {copied ? "コピーしました" : "文章をコピー"}
               </button>
             </div>
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-stone-400">
               ホットペッパービューティーには公式APIがないため、この文章をコピーして管理画面に貼り付けてください。
             </p>
           </div>
