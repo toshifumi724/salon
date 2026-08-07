@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { getCurrentSalonId } from "@/lib/salon";
 import { WordPressForm } from "./wordpress-form";
@@ -16,19 +15,14 @@ export default async function SettingsPage() {
     .single();
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-8">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-gray-900">連携設定</h1>
-        <Link href="/admin" className="text-sm text-gray-500 hover:underline">
-          ← 投稿管理に戻る
-        </Link>
-      </div>
+    <>
+      <h1 className="mb-6 text-xl font-semibold text-stone-900">連携設定</h1>
 
       <WordPressForm
         wordpressUrl={salon?.wordpress_url ?? null}
         wordpressUsername={salon?.wordpress_username ?? null}
         wordpressPostStatus={salon?.wordpress_post_status ?? "draft"}
       />
-    </main>
+    </>
   );
 }

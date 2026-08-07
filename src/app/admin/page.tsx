@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { createServiceRoleClient } from "@/lib/supabase/server";
-import { logout } from "@/app/login/logout-action";
+import { getCurrentSalonId } from "@/lib/salon";
 import { getGoogleConnection } from "@/lib/google";
 import { UploadForm } from "./upload-form";
 import { PostItem } from "./post-item";
@@ -22,11 +22,13 @@ type PostRow = {
 
 async function getRecentPosts() {
   const supabase = createServiceRoleClient();
+  const salonId = await getCurrentSalonId();
   const { data, error } = await supabase
     .from("posts")
     .select(
       "id, comment, created_at, blog_title, blog_content, wordpress_post_id, google_post_id, hotpepper_content, post_images(id, storage_path)"
     )
+    .eq("salon_id", salonId)
     .order("created_at", { ascending: false })
     .limit(20);
 
@@ -61,60 +63,45 @@ export default async function AdminPage({
   ]);
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-8">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-gray-900">投稿管理</h1>
-        <div className="flex items-center gap-4">
-          <Link
-            href="/admin/settings"
-            className="text-sm text-gray-500 hover:underline"
-          >
-            連携設定
-          </Link>
-          <form action={logout}>
-            <button
-              type="submit"
-              className="text-sm text-gray-500 hover:underline"
-            >
-              ログアウト
-            </button>
-          </form>
-        </div>
-      </div>
+    <>
+      <h1 className="mb-6 text-xl font-semibold text-stone-900">投稿管理</h1>
 
       {params.google_error && (
-        <p className="mb-4 rounded border border-red-200 bg-red-50 p-3 text-sm text-red-600">
+        <p className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
           Google連携エラー: {params.google_error}
         </p>
       )}
       {params.google_connected && (
-        <p className="mb-4 rounded border border-green-200 bg-green-50 p-3 text-sm text-green-600">
+        <p className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
           Googleビジネスプロフィールと連携しました
         </p>
       )}
 
-      <section className="mb-6 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-        <h2 className="mb-2 text-sm font-medium text-gray-700">
+      <section className="mb-6 rounded-xl border border-stone-200 bg-white p-5 shadow-sm">
+        <h2 className="mb-2 text-sm font-medium text-stone-700">
           Googleビジネスプロフィール連携
         </h2>
         {googleConnection ? (
           <div className="flex items-center justify-between">
-            <p className="text-sm text-green-600">連携済みです</p>
+            <span className="inline-flex items-center gap-1.5 text-sm text-emerald-700">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              連携済み
+            </span>
             <Link
               href="/admin/reviews"
-              className="text-sm text-gray-700 hover:underline"
+              className="text-sm font-medium text-rose-600 hover:underline"
             >
               口コミ管理へ →
             </Link>
           </div>
         ) : (
           <div>
-            <p className="mb-2 text-sm text-gray-500">
+            <p className="mb-3 text-sm text-stone-500">
               未連携です。連携するとGoogleへの投稿ができるようになります。
             </p>
             <a
               href="/api/google/auth"
-              className="inline-block rounded bg-gray-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-700"
+              className="inline-block rounded-lg bg-stone-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-stone-700"
             >
               Googleアカウントと連携する
             </a>
@@ -125,9 +112,13 @@ export default async function AdminPage({
       <UploadForm />
 
       <section className="mt-10">
-        <h2 className="mb-3 text-sm font-medium text-gray-500">最近の投稿</h2>
+        <h2 className="mb-3 text-sm font-medium text-stone-500">
+          最近の投稿
+        </h2>
         {posts.length === 0 && (
-          <p className="text-sm text-gray-400">まだ投稿がありません</p>
+          <p className="rounded-xl border border-dashed border-stone-300 bg-white px-4 py-8 text-center text-sm text-stone-400">
+            まだ投稿がありません
+          </p>
         )}
         <ul className="space-y-4">
           {posts.map((post) => (
@@ -147,6 +138,6 @@ export default async function AdminPage({
           ))}
         </ul>
       </section>
-    </main>
+    </>
   );
 }
