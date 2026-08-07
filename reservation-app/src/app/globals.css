@@ -28,7 +28,7 @@
   --color-brand-accent: var(--brand-accent);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --font-heading: "Hiragino Mincho ProN", "Yu Mincho", serif;
+  --font-heading: "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
 }
 
 body {
