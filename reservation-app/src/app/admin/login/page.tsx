@@ -54,6 +54,11 @@ export default function AdminLoginPage() {
       <p className="mt-4 text-xs text-brand-text/60">
         ※事前にSupabaseの admin_users テーブルへ登録されたメールアドレスのみログインできます。
       </p>
+      <p className="mt-2 text-sm">
+        <a className="text-brand-strong underline hover:text-brand-heading" href="/admin/signup">
+          初めての方はこちら（サロン管理者アカウントを作成）
+        </a>
+      </p>
     </main>
   );
 }
