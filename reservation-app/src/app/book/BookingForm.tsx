@@ -21,6 +21,7 @@ export default function BookingForm({ menus }: { menus: Menu[] }) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<{ cancelToken: string } | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     if (!menuId || !date) return;
@@ -40,7 +41,7 @@ export default function BookingForm({ menus }: { menus: Menu[] }) {
     return () => {
       ignore = true;
     };
-  }, [menuId, date]);
+  }, [menuId, date, refreshKey]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -69,9 +70,26 @@ export default function BookingForm({ menus }: { menus: Menu[] }) {
       <div className="rounded-lg border border-brand-divider bg-brand-surface p-4 shadow-sm">
         <p className="mb-2 font-heading text-lg text-brand-heading">ご予約が確定しました。</p>
         <p className="mb-4 text-sm text-brand-text/70">確認メールをお送りしました。</p>
-        <a className="text-brand-strong underline hover:text-brand-heading" href={`/r/${result.cancelToken}`}>
+        <a
+          className="mb-2 block text-brand-strong underline hover:text-brand-heading"
+          href={`/r/${result.cancelToken}`}
+        >
           予約内容の確認・変更・キャンセルはこちら
         </a>
+        <button
+          type="button"
+          onClick={() => {
+            setResult(null);
+            setTime(null);
+            setName("");
+            setEmail("");
+            setPhone("");
+            setRefreshKey((k) => k + 1);
+          }}
+          className="text-brand-strong underline hover:text-brand-heading"
+        >
+          他の日程でもう1件予約する
+        </button>
       </div>
     );
   }
