@@ -7,6 +7,7 @@ import {
   generateBlogPost,
   generateGoogleCaption,
   generateHotpepperContent,
+  type HotpepperContent,
 } from "@/lib/claude";
 import { createWordPressPost } from "@/lib/wordpress";
 import { createGoogleLocalPost } from "@/lib/google";
@@ -276,7 +277,10 @@ export async function publishToGoogle(
   }
 }
 
-export type GenerateHotpepperState = { content?: string; error?: string };
+export type GenerateHotpepperState = {
+  content?: HotpepperContent;
+  error?: string;
+};
 
 export async function generateHotpepperContentAction(
   postId: string
@@ -299,7 +303,14 @@ export async function generateHotpepperContentAction(
 
     const { error: updateError } = await supabase
       .from("posts")
-      .update({ hotpepper_content: content, updated_at: new Date().toISOString() })
+      .update({
+        hotpepper_style_title: content.styleTitle,
+        hotpepper_stylist_comment: content.stylistComment,
+        hotpepper_menu_content: content.menuContent,
+        hotpepper_blog_title: content.blogTitle,
+        hotpepper_blog_body: content.blogBody,
+        updated_at: new Date().toISOString(),
+      })
       .eq("id", postId);
 
     if (updateError) {

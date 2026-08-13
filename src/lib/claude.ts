@@ -210,21 +210,45 @@ export async function generateReviewReply({
   return (response.parsed_output as { reply: string }).reply;
 }
 
+export type HotpepperContent = {
+  styleTitle: string;
+  stylistComment: string;
+  menuContent: string;
+  blogTitle: string;
+  blogBody: string;
+};
+
+// SALON BOARD(ホットペッパービューティー管理画面)の入力欄の文字数上限に合わせる
+const HOTPEPPER_LIMITS = {
+  styleTitle: 30,
+  stylistComment: 120,
+  menuContent: 50,
+  blogTitle: 25,
+  blogBody: 1000,
+} as const;
+
 /**
  * ホットペッパービューティーには公式APIが無いため自動投稿はしない。
- * 管理画面にコピペ用として表示する文章のみ生成する。
+ * SALON BOARD(管理画面)の「スタイル掲載」「ブログ投稿」の各入力欄にそのまま
+ * コピー&ペーストできるよう、欄ごとの文字数上限に収めた文章を生成する。
  */
 export async function generateHotpepperContent(
   comment: string,
   toneProfile?: SalonToneProfile
-): Promise<string> {
+): Promise<HotpepperContent> {
   const client = getClient();
 
   const response = await client.messages.parse({
     model: MODEL,
-    max_tokens: 1500,
+    max_tokens: 2000,
     system:
-      "あなたは美容室のホットペッパービューティー掲載用の文章を書く担当者です。スタイリストが書いた短いコメントをもとに、スタイル紹介文を日本語で作成してください。お客様が来店したくなるような、施術内容やポイントが伝わる文章にしてください。300〜400文字程度でまとめ、見出しや記号(#や*など)は使わず、そのままコピー&ペーストして使える文章のみを出力してください。" +
+      "あなたは美容室のホットペッパービューティー掲載用の文章を書く担当者です。スタイリストが書いた短いコメントをもとに、SALON BOARD(ホットペッパービューティーの管理画面)にそのまま貼り付けられる文章を日本語で作成してください。見出しや記号(#や*など)は使わないでください。" +
+      "以下の5つを、それぞれの文字数上限を必ず守って作成してください:\n" +
+      `- style_title: スタイル掲載の「スタイル名」。${HOTPEPPER_LIMITS.styleTitle}文字以内。お客様の目を引く短いキャッチコピー。\n` +
+      `- stylist_comment: スタイル掲載の「スタイリストコメント」。${HOTPEPPER_LIMITS.stylistComment}文字以内。スタイリスト目線でおすすめポイントを伝える文章。\n` +
+      `- menu_content: スタイル掲載の「メニュー内容」。${HOTPEPPER_LIMITS.menuContent}文字以内。施術メニューを簡潔に列挙。\n` +
+      `- blog_title: ブログ投稿の「タイトル」。${HOTPEPPER_LIMITS.blogTitle}文字以内。\n` +
+      `- blog_body: ブログ投稿の「本文」。${HOTPEPPER_LIMITS.blogBody}文字以内。お客様が来店したくなるような、施術内容やポイントが伝わる読み物として作成。` +
       buildToneInstructions(toneProfile),
     messages: [
       {
@@ -238,9 +262,34 @@ export async function generateHotpepperContent(
         schema: {
           type: "object",
           properties: {
-            content: { type: "string", description: "ホットペッパー掲載用の文章" },
+            style_title: {
+              type: "string",
+              description: `スタイル名(${HOTPEPPER_LIMITS.styleTitle}文字以内)`,
+            },
+            stylist_comment: {
+              type: "string",
+              description: `スタイリストコメント(${HOTPEPPER_LIMITS.stylistComment}文字以内)`,
+            },
+            menu_content: {
+              type: "string",
+              description: `メニュー内容(${HOTPEPPER_LIMITS.menuContent}文字以内)`,
+            },
+            blog_title: {
+              type: "string",
+              description: `ブログタイトル(${HOTPEPPER_LIMITS.blogTitle}文字以内)`,
+            },
+            blog_body: {
+              type: "string",
+              description: `ブログ本文(${HOTPEPPER_LIMITS.blogBody}文字以内)`,
+            },
           },
-          required: ["content"],
+          required: [
+            "style_title",
+            "stylist_comment",
+            "menu_content",
+            "blog_title",
+            "blog_body",
+          ],
           additionalProperties: false,
         },
       },
@@ -251,5 +300,19 @@ export async function generateHotpepperContent(
     throw new Error("Claude APIからの応答を解析できませんでした");
   }
 
-  return (response.parsed_output as { content: string }).content;
+  const parsed = response.parsed_output as {
+    style_title: string;
+    stylist_comment: string;
+    menu_content: string;
+    blog_title: string;
+    blog_body: string;
+  };
+
+  return {
+    styleTitle: parsed.style_title.slice(0, HOTPEPPER_LIMITS.styleTitle),
+    stylistComment: parsed.stylist_comment.slice(0, HOTPEPPER_LIMITS.stylistComment),
+    menuContent: parsed.menu_content.slice(0, HOTPEPPER_LIMITS.menuContent),
+    blogTitle: parsed.blog_title.slice(0, HOTPEPPER_LIMITS.blogTitle),
+    blogBody: parsed.blog_body.slice(0, HOTPEPPER_LIMITS.blogBody),
+  };
 }
