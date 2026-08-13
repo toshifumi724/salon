@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createServiceRoleClient } from "@/lib/supabase/server";
+import { getCurrentSalonId, getSalonToneProfile } from "@/lib/salon";
 import { generateReviewReply } from "@/lib/claude";
 import { replyToGoogleReview } from "@/lib/google";
 
@@ -22,10 +23,13 @@ export async function generateReplyDraft(
       return { error: "口コミが見つかりません" };
     }
 
+    const salonId = await getCurrentSalonId();
+    const toneProfile = await getSalonToneProfile(salonId);
     const reply = await generateReviewReply({
       comment: review.comment,
       starRating: review.star_rating,
       reviewerName: review.reviewer_name,
+      toneProfile,
     });
 
     await supabase

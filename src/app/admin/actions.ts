@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createServiceRoleClient } from "@/lib/supabase/server";
-import { getCurrentSalonId } from "@/lib/salon";
+import { getCurrentSalonId, getSalonToneProfile } from "@/lib/salon";
 import {
   generateBlogPost,
   generateGoogleCaption,
@@ -117,7 +117,9 @@ export async function generateBlogContent(
       return { error: "投稿が見つかりません" };
     }
 
-    const { title, content } = await generateBlogPost(post.comment);
+    const salonId = await getCurrentSalonId();
+    const toneProfile = await getSalonToneProfile(salonId);
+    const { title, content } = await generateBlogPost(post.comment, toneProfile);
 
     const { error: updateError } = await supabase
       .from("posts")
@@ -229,7 +231,9 @@ export async function generateGoogleCaptionAction(
       return { error: "投稿が見つかりません" };
     }
 
-    const caption = await generateGoogleCaption(post.comment);
+    const salonId = await getCurrentSalonId();
+    const toneProfile = await getSalonToneProfile(salonId);
+    const caption = await generateGoogleCaption(post.comment, toneProfile);
     return { caption };
   } catch (err) {
     const message = err instanceof Error ? err.message : "不明なエラー";
@@ -289,7 +293,9 @@ export async function generateHotpepperContentAction(
       return { error: "投稿が見つかりません" };
     }
 
-    const content = await generateHotpepperContent(post.comment);
+    const salonId = await getCurrentSalonId();
+    const toneProfile = await getSalonToneProfile(salonId);
+    const content = await generateHotpepperContent(post.comment, toneProfile);
 
     const { error: updateError } = await supabase
       .from("posts")
