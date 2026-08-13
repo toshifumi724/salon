@@ -44,3 +44,52 @@ export async function saveWordPressSettings(
     return { error: `保存に失敗しました: ${message}` };
   }
 }
+
+const TONE_LEVELS = ["polite", "friendly", "casual"] as const;
+const STYLE_SAMPLE_MAX_LENGTH = 1500;
+
+export type SaveToneSettingsState = { error?: string; success?: boolean };
+
+export async function saveToneSettings(
+  _prevState: SaveToneSettingsState,
+  formData: FormData
+): Promise<SaveToneSettingsState> {
+  const toneLevelInput = String(formData.get("tone_level") ?? "friendly");
+  const toneLevel = (
+    TONE_LEVELS as readonly string[]
+  ).includes(toneLevelInput)
+    ? toneLevelInput
+    : "friendly";
+  const targetCustomer = String(formData.get("target_customer") ?? "").trim();
+  const brandKeywords = String(formData.get("brand_keywords") ?? "").trim();
+  const useEmoji = formData.get("use_emoji") === "on";
+  const styleSample = String(formData.get("style_sample") ?? "")
+    .trim()
+    .slice(0, STYLE_SAMPLE_MAX_LENGTH);
+
+  try {
+    const supabase = createServiceRoleClient();
+    const salonId = await getCurrentSalonId();
+
+    const { error } = await supabase
+      .from("salons")
+      .update({
+        tone_level: toneLevel,
+        target_customer: targetCustomer || null,
+        brand_keywords: brandKeywords || null,
+        use_emoji: useEmoji,
+        style_sample: styleSample || null,
+      })
+      .eq("id", salonId);
+
+    if (error) {
+      return { error: `保存に失敗しました: ${error.message}` };
+    }
+
+    revalidatePath("/admin/settings");
+    return { success: true };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "不明なエラー";
+    return { error: `保存に失敗しました: ${message}` };
+  }
+}

@@ -2,11 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { createServiceRoleClient } from "@/lib/supabase/server";
-import { getCurrentSalonId } from "@/lib/salon";
+import { getCurrentSalonId, getSalonToneProfile } from "@/lib/salon";
 import {
   generateBlogPost,
   generateGoogleCaption,
   generateHotpepperContent,
+  type HotpepperContent,
 } from "@/lib/claude";
 import { createWordPressPost } from "@/lib/wordpress";
 import { createGoogleLocalPost } from "@/lib/google";
@@ -117,7 +118,9 @@ export async function generateBlogContent(
       return { error: "投稿が見つかりません" };
     }
 
-    const { title, content } = await generateBlogPost(post.comment);
+    const salonId = await getCurrentSalonId();
+    const toneProfile = await getSalonToneProfile(salonId);
+    const { title, content } = await generateBlogPost(post.comment, toneProfile);
 
     const { error: updateError } = await supabase
       .from("posts")
@@ -229,7 +232,9 @@ export async function generateGoogleCaptionAction(
       return { error: "投稿が見つかりません" };
     }
 
-    const caption = await generateGoogleCaption(post.comment);
+    const salonId = await getCurrentSalonId();
+    const toneProfile = await getSalonToneProfile(salonId);
+    const caption = await generateGoogleCaption(post.comment, toneProfile);
     return { caption };
   } catch (err) {
     const message = err instanceof Error ? err.message : "不明なエラー";
@@ -272,7 +277,10 @@ export async function publishToGoogle(
   }
 }
 
-export type GenerateHotpepperState = { content?: string; error?: string };
+export type GenerateHotpepperState = {
+  content?: HotpepperContent;
+  error?: string;
+};
 
 export async function generateHotpepperContentAction(
   postId: string
@@ -289,11 +297,20 @@ export async function generateHotpepperContentAction(
       return { error: "投稿が見つかりません" };
     }
 
-    const content = await generateHotpepperContent(post.comment);
+    const salonId = await getCurrentSalonId();
+    const toneProfile = await getSalonToneProfile(salonId);
+    const content = await generateHotpepperContent(post.comment, toneProfile);
 
     const { error: updateError } = await supabase
       .from("posts")
-      .update({ hotpepper_content: content, updated_at: new Date().toISOString() })
+      .update({
+        hotpepper_style_title: content.styleTitle,
+        hotpepper_stylist_comment: content.stylistComment,
+        hotpepper_menu_content: content.menuContent,
+        hotpepper_blog_title: content.blogTitle,
+        hotpepper_blog_body: content.blogBody,
+        updated_at: new Date().toISOString(),
+      })
       .eq("id", postId);
 
     if (updateError) {

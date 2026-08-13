@@ -16,7 +16,11 @@ type PostRow = {
   blog_content: string | null;
   wordpress_post_id: string | null;
   google_post_id: string | null;
-  hotpepper_content: string | null;
+  hotpepper_style_title: string | null;
+  hotpepper_stylist_comment: string | null;
+  hotpepper_menu_content: string | null;
+  hotpepper_blog_title: string | null;
+  hotpepper_blog_body: string | null;
   post_images: { id: string; storage_path: string }[];
 };
 
@@ -26,7 +30,7 @@ async function getRecentPosts() {
   const { data, error } = await supabase
     .from("posts")
     .select(
-      "id, comment, created_at, blog_title, blog_content, wordpress_post_id, google_post_id, hotpepper_content, post_images(id, storage_path)"
+      "id, comment, created_at, blog_title, blog_content, wordpress_post_id, google_post_id, hotpepper_style_title, hotpepper_stylist_comment, hotpepper_menu_content, hotpepper_blog_title, hotpepper_blog_body, post_images(id, storage_path)"
     )
     .eq("salon_id", salonId)
     .order("created_at", { ascending: false })
@@ -133,7 +137,11 @@ export default async function AdminPage({
               wordpressPostId={post.wordpress_post_id}
               googlePostId={post.google_post_id}
               isGoogleConnected={!!googleConnection}
-              hotpepperContent={post.hotpepper_content}
+              hotpepperStyleTitle={post.hotpepper_style_title}
+              hotpepperStylistComment={post.hotpepper_stylist_comment}
+              hotpepperMenuContent={post.hotpepper_menu_content}
+              hotpepperBlogTitle={post.hotpepper_blog_title}
+              hotpepperBlogBody={post.hotpepper_blog_body}
             />
           ))}
         </ul>
