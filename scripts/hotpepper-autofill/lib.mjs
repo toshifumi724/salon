@@ -1,6 +1,5 @@
 import { readFileSync, existsSync } from "node:fs";
 import path from "node:path";
-import { createInterface } from "node:readline/promises";
 
 // .env.localを簡易的に読み込む(dotenv非依存)
 export function loadEnvLocal() {
@@ -20,10 +19,60 @@ export function loadEnvLocal() {
   }
 }
 
-export async function waitForEnter(message) {
-  const rl = createInterface({ input: process.stdin, output: process.stdout });
-  await rl.question(message);
-  rl.close();
+/**
+ * ターミナル操作なしで「準備完了」を伝えられるよう、ブラウザ画面の右上に
+ * ボタンを表示し、クリックされるまで待つ。ページ遷移(ログインなど)のたびに
+ * ボタンが消えるため、遷移完了ごとに再表示する。
+ */
+export async function waitForPageButtonClick(page, label) {
+  const inject = async () => {
+    try {
+      await page.evaluate((text) => {
+        if (document.getElementById("__autofill_start_btn__")) return;
+        const btn = document.createElement("button");
+        btn.id = "__autofill_start_btn__";
+        btn.textContent = text;
+        Object.assign(btn.style, {
+          position: "fixed",
+          top: "16px",
+          right: "16px",
+          zIndex: "2147483647",
+          padding: "14px 22px",
+          fontSize: "16px",
+          fontWeight: "bold",
+          background: "#e11d48",
+          color: "#fff",
+          border: "none",
+          borderRadius: "10px",
+          cursor: "pointer",
+          boxShadow: "0 4px 16px rgba(0,0,0,.35)",
+        });
+        btn.onclick = () => {
+          window.__autofillReady = true;
+          btn.textContent = "入力中...";
+          btn.disabled = true;
+        };
+        document.body.appendChild(btn);
+      }, label);
+    } catch {
+      // ページ遷移中などで失敗した場合は、次のチェック時に再試行する
+    }
+  };
+
+  page.on("load", inject);
+  await inject();
+
+  while (true) {
+    try {
+      const ready = await page.evaluate(() => window.__autofillReady === true);
+      if (ready) break;
+    } catch {
+      // ページ遷移中は評価できないことがあるため無視して再試行
+    }
+    await page.waitForTimeout(500);
+  }
+
+  page.off("load", inject);
 }
 
 /**

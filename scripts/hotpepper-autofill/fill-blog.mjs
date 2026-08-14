@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { chromium } from "playwright";
 import { readFileSync } from "node:fs";
-import { loadEnvLocal, waitForEnter, fillFieldByLabel } from "./lib.mjs";
+import { loadEnvLocal, waitForPageButtonClick, fillFieldByLabel } from "./lib.mjs";
 
 loadEnvLocal();
 
@@ -31,13 +31,9 @@ async function main() {
   const page = await browser.newPage();
   await page.goto("https://salonboard.com/login/");
 
-  console.log("");
-  console.log("=======================================================");
-  console.log("1. 開いたブラウザでSALON BOARDにログインしてください");
-  console.log("2. ブログの「新規投稿」画面を開いてください");
-  console.log("3. 準備ができたら、このターミナルでEnterキーを押してください");
-  console.log("=======================================================");
-  await waitForEnter("> ");
+  console.log("SALON BOARDにログインし、ブログの新規投稿画面を開いてください。");
+  console.log("準備ができたら、ブラウザ右上に出ている赤いボタンをクリックしてください。");
+  await waitForPageButtonClick(page, "ここをクリックすると自動入力を開始します");
 
   if (!page.url().includes("blog")) {
     console.warn(
@@ -50,11 +46,9 @@ async function main() {
   await fillFieldByLabel(page, "本文", data.blogBody, { tag: "textarea" });
 
   console.log("");
-  console.log("=======================================================");
   console.log("入力が完了しました。内容を必ずご自身の目で確認してから、");
   console.log("SALON BOARD側の「確認する」→「投稿する」はご自身で押してください。");
   console.log("(このツールは投稿ボタンを絶対に押しません)");
-  console.log("=======================================================");
 }
 
 main().catch((err) => {
