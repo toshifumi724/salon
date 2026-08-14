@@ -37,6 +37,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# サロンボード連携スクリプトが保存する画面キャプチャ・HTML(実際の予約データが写り得るため)
+/scripts/output/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

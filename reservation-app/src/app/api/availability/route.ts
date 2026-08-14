@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { calculateAvailableSlots } from "@/lib/availability";
 import { dayOfWeekOf, jstDayRange, jstMinutesOfDay } from "@/lib/jst";
 import { getDefaultSalonId, getDefaultStaffId } from "@/lib/salon-context";
+import { getExternalBusyIntervals } from "@/lib/external-sync";
 import type { BusinessHour, DailySlotOverride } from "@/lib/types";
 
 export async function GET(req: NextRequest) {
@@ -59,6 +60,7 @@ export async function GET(req: NextRequest) {
     startMinutes: jstMinutesOfDay(r.start_at),
     endMinutes: jstMinutesOfDay(r.end_at),
   }));
+  busyIntervals.push(...(await getExternalBusyIntervals(staffId, date)));
 
   const slots = calculateAvailableSlots({
     date,

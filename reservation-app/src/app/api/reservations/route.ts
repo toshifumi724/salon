@@ -6,6 +6,7 @@ import { calculateAvailableSlots } from "@/lib/availability";
 import { combineDateTimeJST } from "@/lib/availability";
 import { dayOfWeekOf, jstDayRange, jstMinutesOfDay } from "@/lib/jst";
 import { getDefaultSalonId, getDefaultStaffId } from "@/lib/salon-context";
+import { getExternalBusyIntervals } from "@/lib/external-sync";
 import { reservationConfirmedEmail, sendEmail } from "@/lib/email";
 import type { BusinessHour, DailySlotOverride } from "@/lib/types";
 
@@ -66,6 +67,7 @@ export async function POST(req: NextRequest) {
     startMinutes: jstMinutesOfDay(r.start_at),
     endMinutes: jstMinutesOfDay(r.end_at),
   }));
+  busyIntervals.push(...(await getExternalBusyIntervals(staffId, date)));
   const availableSlots = calculateAvailableSlots({
     date,
     durationMinutes: menu.duration_minutes,

@@ -5,7 +5,7 @@ const SLOT_GRANULARITY_MINUTES = 30;
 
 export type BusyInterval = { startMinutes: number; endMinutes: number };
 
-function timeToMinutes(time: string): number {
+export function timeToMinutes(time: string): number {
   const [h, m] = time.split(":").map(Number);
   return h * 60 + m;
 }
