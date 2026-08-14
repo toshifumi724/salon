@@ -52,6 +52,17 @@ export type Reservation = {
   created_at: string;
 };
 
+export type ExternalBlockedSlot = {
+  id: string;
+  salon_id: string;
+  staff_id: string;
+  date: string; // "2026-08-10"
+  start_time: string; // "09:00:00"
+  end_time: string;
+  source: string; // "salonboard" など
+  external_ref: string | null;
+};
+
 export type Customer = {
   id: string;
   salon_id: string;

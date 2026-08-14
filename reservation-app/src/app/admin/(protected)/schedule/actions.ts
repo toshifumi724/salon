@@ -58,3 +58,34 @@ export async function clearDailyOverride(params: { staffId: string; date: string
     .eq("date", params.date);
   revalidatePath("/admin/schedule");
 }
+
+export async function addExternalBlock(params: {
+  staffId: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  note: string;
+}) {
+  const { salonId } = await requireAdmin();
+  if (params.endTime <= params.startTime) {
+    throw new Error("終了時刻は開始時刻より後にしてください");
+  }
+  const admin = createAdminClient();
+  await admin.from("external_blocked_slots").insert({
+    salon_id: salonId,
+    staff_id: params.staffId,
+    date: params.date,
+    start_time: params.startTime,
+    end_time: params.endTime,
+    source: "salonboard",
+    external_ref: params.note || null,
+  });
+  revalidatePath("/admin/schedule");
+}
+
+export async function deleteExternalBlock(id: string) {
+  const { salonId } = await requireAdmin();
+  const admin = createAdminClient();
+  await admin.from("external_blocked_slots").delete().eq("salon_id", salonId).eq("id", id);
+  revalidatePath("/admin/schedule");
+}

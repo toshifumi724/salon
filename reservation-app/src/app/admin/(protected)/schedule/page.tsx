@@ -2,7 +2,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAdmin } from "@/lib/admin-auth";
 import { updateBusinessHours } from "./actions";
 import DailyOverrideEditor from "./DailyOverrideEditor";
-import type { BusinessHour, Menu, Staff } from "@/lib/types";
+import ExternalBlockEditor from "./ExternalBlockEditor";
+import type { BusinessHour, ExternalBlockedSlot, Menu, Staff } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +35,12 @@ export default async function SchedulePage() {
     .eq("salon_id", salonId)
     .eq("is_active", true)
     .order("sort_order");
+
+  const { data: externalBlocks } = await admin
+    .from("external_blocked_slots")
+    .select("*")
+    .eq("salon_id", salonId)
+    .order("date", { ascending: true });
 
   return (
     <div className="space-y-8">
@@ -90,6 +97,16 @@ export default async function SchedulePage() {
           通常はメニューの所要時間から自動で予約枠が計算されます。特定の日だけ枠を変更したい場合や、臨時休業にしたい場合はこちらで設定してください。
         </p>
         <DailyOverrideEditor staffList={(staff ?? []) as Staff[]} menus={(menus ?? []) as Menu[]} />
+      </section>
+
+      <section>
+        <h1 className="mb-2 font-heading text-2xl tracking-wide text-brand-heading">
+          外部予約(サロンボードなど)のブロック管理
+        </h1>
+        <ExternalBlockEditor
+          staffList={(staff ?? []) as Staff[]}
+          blocks={(externalBlocks ?? []) as ExternalBlockedSlot[]}
+        />
       </section>
     </div>
   );
