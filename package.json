@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "hotpepper:fill-style": "node scripts/hotpepper-autofill/fill-style.mjs",
+    "hotpepper:fill-blog": "node scripts/hotpepper-autofill/fill-blog.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.115.0",
