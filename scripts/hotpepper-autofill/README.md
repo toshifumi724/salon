@@ -11,37 +11,34 @@
 
 ## 事前準備(初回のみ)
 
+ターミナルで1回だけ実行してください。
+
 ```
 npx playwright install chromium
 ```
 
-## 使い方: スタイル掲載情報
+## 使い方(ダブルクリックだけでOK)
 
-1. `scripts/hotpepper-autofill/example-style.json` をコピーして中身を書き換える
+### スタイル掲載情報を自動入力したいとき
+
+1. `scripts/hotpepper-autofill/my-style.json` をメモ帳などで開いて、内容を書き換える
    (管理画面の「AIで文章を生成」で作った文章、または自分で書いた文章を入れてください)
    - `styleTitle`: スタイル名(30文字以内)
    - `stylistComment`: スタイリストコメント(120文字以内)
    - `menuContent`: メニュー内容(50文字以内)
-2. 実行する
-   ```
-   node scripts/hotpepper-autofill/fill-style.mjs --file scripts/hotpepper-autofill/my-style.json
-   ```
-3. ブラウザが開くので、SALON BOARDに手動でログインし、スタイルの新規追加/編集画面を開く
-4. ターミナルに戻ってEnterキーを押す → 自動入力される
-5. 内容を確認して、自分で「登録する」ボタンを押す
+   - 保存して閉じる
+2. `scripts/hotpepper-autofill/自動入力-スタイル.bat` を**ダブルクリック**
+3. 黒い画面(ターミナル)とブラウザが開く
+4. 開いたブラウザでSALON BOARDに手動でログインし、スタイルの新規追加/編集画面を開く
+5. 黒い画面をクリックして **Enterキー** を押す → 自動入力される
+6. 内容を確認して、自分で「登録する」ボタンを押す
+7. 黒い画面は何かキーを押すと閉じられます
 
-## 使い方: ブログ投稿
+### ブログ投稿を自動入力したいとき
 
-1. `scripts/hotpepper-autofill/example-blog.json` をコピーして中身を書き換える
-   - `blogTitle`: タイトル(25文字以内)
-   - `blogBody`: 本文(1000文字以内)
-2. 実行する
-   ```
-   node scripts/hotpepper-autofill/fill-blog.mjs --file scripts/hotpepper-autofill/my-blog.json
-   ```
-3. ブラウザが開くので、SALON BOARDに手動でログインし、ブログの新規投稿画面を開く
-4. ターミナルに戻ってEnterキーを押す → 自動入力される
-5. 内容を確認して、自分で「確認する」→「投稿する」を押す
+同じ流れで、`my-blog.json` を編集してから `自動入力-ブログ.bat` をダブルクリックしてください。
+- `blogTitle`: タイトル(25文字以内)
+- `blogBody`: 本文(1000文字以内)
 
 ## 注意事項
 
@@ -51,4 +48,13 @@ npx playwright install chromium
 - 画像のアップロード、クーポン選択、ヘアスタイル特集の選択などは自動化していません。手動で設定
   してください。
 - ログインID・パスワードはこのツールに保存されません。毎回手動でログインしてください。
+- `my-style.json` / `my-blog.json` は自分で書き換えて使う作業用ファイルです。次に新しい投稿を
+  入力したいときは、このファイルの中身を書き換えるだけで使い回せます。
 - 実際に使ってみて、うまく入力できない項目があれば教えてください。調整します。
+
+## (上級者向け)ターミナルから実行する場合
+
+```
+node scripts/hotpepper-autofill/fill-style.mjs --file 好きなファイル.json
+node scripts/hotpepper-autofill/fill-blog.mjs --file 好きなファイル.json
+```

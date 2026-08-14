@@ -11,7 +11,7 @@ function parseArgs() {
   const file =
     fileIndex !== -1 && args[fileIndex + 1]
       ? args[fileIndex + 1]
-      : "scripts/hotpepper-autofill/example-blog.json";
+      : "scripts/hotpepper-autofill/my-blog.json";
   return { file };
 }
 
