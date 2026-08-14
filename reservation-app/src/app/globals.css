@@ -1,0 +1,38 @@
+@import "tailwindcss";
+
+:root {
+  /* KIZASI様サイトの配色に合わせたブランドカラー */
+  --brand-bg: #eae1ce; /* やわらかベージュ(ベース) */
+  --brand-bg-deep: #d6cbbc; /* ちょい濃いベージュ */
+  --brand-surface: #fdfbf6; /* カード等の背景(ベースより明るい白寄り) */
+  --brand-text: #4a423a; /* 本文の文字色 */
+  --brand-heading: #a38260; /* 見出し・やわらかいブラウン */
+  --brand-strong: #755a40; /* ボタン等の濃いブラウン */
+  --brand-divider: #d8cbcb; /* 区切り線 */
+  --brand-accent: #c9b02c; /* アクセント(元は#fff600だが、上品さを保つため落ち着いた金色に調整) */
+
+  --background: var(--brand-bg);
+  --foreground: var(--brand-text);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-brand-bg: var(--brand-bg);
+  --color-brand-bg-deep: var(--brand-bg-deep);
+  --color-brand-surface: var(--brand-surface);
+  --color-brand-text: var(--brand-text);
+  --color-brand-heading: var(--brand-heading);
+  --color-brand-strong: var(--brand-strong);
+  --color-brand-divider: var(--brand-divider);
+  --color-brand-accent: var(--brand-accent);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-heading: "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+}
